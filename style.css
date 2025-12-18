@@ -1,0 +1,62 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 10px;
+}
+
+#map {
+    height: 80vh;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.leaflet-interactive {
+    cursor: pointer;
+    pointer-events: all;
+}
+
+#question {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+#controls {
+    margin: 10px 0;
+}
+
+#controls button {
+    padding: 8px 16px;
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#controls button.active {
+    background-color: #1976d2;
+    color: white;
+}
+
+.leaflet-interactive {
+    transition: fill-opacity 0.25s ease, fill-color 0.25s ease;
+}
+
+.control-group {
+    margin: 6px 0;
+}
+
+select {
+    padding: 6px;
+    font-size: 14px;
+}
