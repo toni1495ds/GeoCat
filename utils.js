@@ -99,3 +99,23 @@ function updateVegueriaFilter() {
         }
     });
 }
+
+function showCorrect() {
+    feedback.textContent = "Correcte!";
+    feedback.className = "correcte";
+}
+
+function showIncorrect() {
+    feedback.textContent = "Incorrecte!";
+    feedback.className = "incorrecte";
+}
+
+function updateScore() {
+    scoreCorrectEl.textContent = scoreCorrect;
+    scoreWrongEl.textContent = scoreWrong;
+}
+
+function showCorrectWithAnswer(el, comarca) {
+    el.textContent = `Correcte! És ${comarca}`;
+    el.className = "correcte";
+}

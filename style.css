@@ -60,3 +60,47 @@ select {
     padding: 6px;
     font-size: 14px;
 }
+
+#status-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin: 10px 0 6px;
+    min-height: 28px;
+}
+
+#feedback {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#feedback.correcte {
+    color: #2e7d32;
+}
+
+#feedback.incorrecte {
+    color: #c62828;
+}
+
+#score {
+    display: flex;
+    gap: 12px;
+    font-size: 16px;
+}
+
+.score {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: bold;
+}
+
+.score.correct {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.score.wrong {
+    background: #fdecea;
+    color: #c62828;
+}

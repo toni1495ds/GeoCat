@@ -27,6 +27,12 @@ let activeVegueria = null;
 const question = document.getElementById("question");
 const feedback = document.getElementById("feedback");
 
+let scoreCorrect = 0;
+let scoreWrong = 0;
+
+const scoreCorrectEl = document.getElementById("score-correct");
+const scoreWrongEl = document.getElementById("score-wrong");
+
 // =====================
 // 3. DATOS ESTÁTICOS
 // =====================
@@ -74,61 +80,63 @@ function onEachFeature(feature, layer) {
     layer.on("click", () => {
         const clickedComarca = feature.properties.nom_comar;
 
-        // --- MODO MUNICIPI ---
+        // =====================
+        // MODO MUNICIPIS
+        // =====================
         if (gameMode === "MUNICIPI") {
             if (!comarcaPertanyAProvincia(clickedComarca)) return;
-
             if (clickedComarca === currentAnswer) {
-                layer.setStyle({ fillColor: "#4caf50", fillOpacity: 0.8 });
-                question.textContent = "Correcte!";
-                setTimeout(newQuestion, 1200);
+                layer.setStyle({
+                    fillColor: "#4caf50",
+                    fillOpacity: 0.8
+                });
+
+                scoreCorrect++;
+                updateScore();
+                showCorrectWithAnswer(feedback, currentAnswer);
+
+                setTimeout(newQuestion, 1800);
             } else {
-                layer.setStyle({ fillColor: "#f44336", fillOpacity: 0.7 });
-                question.textContent = "Incorrecte!";
+                layer.setStyle({
+                    fillColor: "#f44336",
+                    fillOpacity: 0.7
+                });
+
+                scoreWrong++;
+                updateScore();
+                showIncorrect(feedback);
             }
             return;
         }
 
-        // --- COMARQUES / CAPITALS ---
+        // =====================
+        // COMARQUES / CAPITALS
+        // =====================
         if (clickedComarca === currentAnswer) {
-            layer.setStyle({ fillColor: "#4caf50", fillOpacity: 0.8 });
-            question.textContent = "Correcte!";
-            setTimeout(newQuestion, 1200);
+            layer.setStyle({
+                fillColor: "#4caf50",
+                fillOpacity: 0.8
+            });
+
+            scoreCorrect++;
+            updateScore();
+            showCorrectWithAnswer(feedback, currentAnswer);
+
+            setTimeout(newQuestion, 1800);
         } else {
-            // 🔴 SOLO error, sin pistas
-            layer.setStyle({ fillColor: "#f44336", fillOpacity: 0.7 });
-            question.textContent = "Incorrecte!";
+            layer.setStyle({
+                fillColor: "#f44336",
+                fillOpacity: 0.7
+            });
+
+            scoreWrong++;
+            updateScore();
+            showIncorrect(feedback);
         }
     });
 }
 
 
-
-// =====================
-// 6.2 INTERACCIONES MUNICIPIS
-// =====================
-function onEachMunicipi(feature, layer) {
-    layer.on("click", () => {
-        if (gameMode !== "MUNICIPI") return;
-
-        const clicked = feature.properties.nom_muni;
-
-        if (clicked === currentAnswer) {
-            layer.setStyle({
-                fillColor: "#66bb6a",
-                fillOpacity: 0.8
-            });
-            question.textContent = "Correcte!";
-            setTimeout(newQuestion, 1000);
-        } else {
-            layer.setStyle({
-                fillColor: "#ef9a9a",
-                fillOpacity: 0.8
-            });
-            question.textContent = "Incorrecte!";
-        }
-    });
-}
 
 // =====================
 // 8. NUEVA PREGUNTA
@@ -137,6 +145,9 @@ function newQuestion() {
     if (geojsonLayer) {
         resetMapStyles();
     }
+
+    feedback.textContent = "";
+    feedback.className = "";
 
     const availableComarques = activeVegueria
         ? vegueries[activeVegueria]

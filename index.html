@@ -59,16 +59,25 @@
 
         <!-- PREGUNTA -->
         <p id="question">Clica la comarca correcta</p>
-        <p id="feedback"></p>
-    </div>
+        <div id="status-bar">
+            <span id="feedback"></span>
+            <div id="score">
+                <span class="score correct">
+                    ✓ <span id="score-correct">0</span>
+                </span>
+                <span class="score wrong">
+                    ✗ <span id="score-wrong">0</span>
+                </span>
+            </div>
+        </div>
 
-    <!-- MAPA -->
-    <div id="map"></div>
+        <!-- MAPA -->
+        <div id="map"></div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="utils.js"></script>
-    <script src="app.js"></script>
+        <!-- Leaflet JS -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="utils.js"></script>
+        <script src="app.js"></script>
 
 </body>
 
