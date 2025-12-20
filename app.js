@@ -39,18 +39,25 @@ let pendingAnswers = [];
 let completedAnswers = new Set();
 
 const usaRegions = {
-    west: ["California", "Oregon", "Washington", "Nevada", "Arizona", "Utah", "Idaho"],
-    midwest: ["Illinois", "Indiana", "Iowa", "Ohio", "Michigan", "Wisconsin", "Minnesota", "Missouri"],
-    south: ["Texas", "Florida", "Georgia", "Alabama", "Mississippi", "Louisiana", "Tennessee"],
-    northeast: ["New York", "Massachusetts", "Pennsylvania", "New Jersey", "Connecticut"]
+    west_coast: ["California", "Oregon", "Washington"],
+    rocky_mountain: ["Idaho", "Montana", "Wyoming", "Utah", "Colorado"],
+    southwest: ["Arizona", "New Mexico", "Texas", "Nevada"],
+    great_plains: ["North Dakota", "South Dakota", "Nebraska", "Kansas", "Oklahoma"],
+    midwest: ["Minnesota", "Iowa", "Missouri", "Wisconsin", "Illinois", "Indiana", "Michigan", "Ohio"],
+    south: ["Arkansas", "Louisiana", "Mississippi", "Alabama", "Georgia", "Florida", "South Carolina", "North Carolina", "Tennessee", "Kentucky", "West Virginia", "Virginia"],
+    mid_atlantic: ["Pennsylvania", "New Jersey", "Delaware", "Maryland", "District of Columbia", "New York"],
+    new_england: ["Maine", "New Hampshire", "Vermont", "Massachusetts", "Rhode Island", "Connecticut"],
 };
 
-const regionColors = {
-    west: "#52adedff",
-    midwest: "#5dca66ff",
-    south: "#d1b17eff",
-    northeast: "#7a55b0ff",
-    default: "#ce6868ff"
+const usaRegionColors = {
+    west_coast: "#d16ba5",       // rosa
+    rocky_mountain: "#4d96d7",   // azul
+    great_plains: "#b5c800",     // verde amarillento
+    midwest: "#4db6ac",          // turquesa
+    southwest: "#4caf50",        // verde
+    south: "#ff9800",            // naranja
+    mid_atlantic: "#fbc02d",     // amarillo
+    new_england: "#e53935",      // rojo
 };
 
 let activeVegueria = null;
@@ -152,14 +159,19 @@ function styleFeature(feature) {
         };
     }
 
+    // ===== USA =====
     if (activeDataset === "usa") {
+        const stateName = feature.properties.name;
+        const region = getUSARegion(stateName);
+
         return {
-            fillColor: getUSAColor(name),
+            fillColor: usaRegionColors[region] || "#e0e0e0",
             fillOpacity: 0.65,
             color: "#444",
             weight: 1
         };
     }
+
 
     const veg = getVegueria(name);
     return {
@@ -386,11 +398,11 @@ btnMunicipi.addEventListener("click", () => {
 loadDataset("catalunya");
 updateModeLabels();
 
-function getUSAColor(state) {
+function getUSARegion(stateName) {
     for (const region in usaRegions) {
-        if (usaRegions[region].includes(state)) {
-            return regionColors[region];
+        if (usaRegions[region].includes(stateName)) {
+            return region;
         }
     }
-    return regionColors.default;
+    return null;
 }
