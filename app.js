@@ -5,6 +5,19 @@ const map = L.map("map").setView([41.7, 1.8], 7);
 let geojsonLayer;
 
 // =====================
+// DATASETS
+// =====================
+const DATASETS = {
+    catalunya: {
+        geojson: "data/catalunya/comarques.geojson",
+        capitals: "data/catalunya/capitals.json",
+        center: [41.7, 1.8],
+        zoom: 7,
+        featureName: f => f.properties.nom_comar
+    }
+};
+
+// =====================
 // 2. ESTADO GLOBAL
 // =====================
 let comarques = [];
@@ -20,7 +33,25 @@ let activeProvincia = "";
 let currentAnswer = null;
 let currentQuestionText = "";
 let gameMode = "CAPITAL";
-// "COMARCA" | "CAPITAL" | "MUNICIPI"
+let activeDataset = "usa"; // solo usa de momento
+let allFeatures = [];
+let pendingAnswers = [];
+let completedAnswers = new Set();
+
+const usaRegions = {
+    west: ["California", "Oregon", "Washington", "Nevada", "Arizona", "Utah", "Idaho"],
+    midwest: ["Illinois", "Indiana", "Iowa", "Ohio", "Michigan", "Wisconsin", "Minnesota", "Missouri"],
+    south: ["Texas", "Florida", "Georgia", "Alabama", "Mississippi", "Louisiana", "Tennessee"],
+    northeast: ["New York", "Massachusetts", "Pennsylvania", "New Jersey", "Connecticut"]
+};
+
+const regionColors = {
+    west: "#52adedff",
+    midwest: "#5dca66ff",
+    south: "#d1b17eff",
+    northeast: "#7a55b0ff",
+    default: "#ce6868ff"
+};
 
 let activeVegueria = null;
 
@@ -33,6 +64,36 @@ let scoreWrong = 0;
 const scoreCorrectEl = document.getElementById("score-correct");
 const scoreWrongEl = document.getElementById("score-wrong");
 
+const datasetSelect = document.getElementById("dataset-select");
+
+datasetSelect.addEventListener("change", () => {
+    const dataset = datasetSelect.value;
+
+    activeDataset = dataset;
+
+    // reset scores
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    updateScore();
+
+    // reset filtros
+    activeVegueria = null;
+    activeProvincia = "";
+
+    // USA solo Capitals
+    if (dataset === "usa") {
+        gameMode = "CAPITAL";
+
+        btnCapital.classList.add("active");
+        btnComarca.classList.remove("active");
+        btnMunicipi.classList.remove("active");
+    }
+
+    updateModeLabels();
+    updateFiltersUI();
+    loadDataset(dataset);
+});
+
 // =====================
 // 3. DATOS ESTÁTICOS
 // =====================
@@ -43,11 +104,26 @@ const vegueriaColors = { "Alt Pirineu i Aran": "#90caf9", "Girona": "#81c784", "
 // 4. HELPERS
 // =====================
 function updateFiltersUI() {
-    const vegueriaGroup = document.querySelector(
-        'label[for="vegueria-select"]'
-    ).parentElement;
-
+    const vegueriaGroup = document.getElementById("vegueria-filter");
     const provinciaGroup = document.getElementById("provincia-filter");
+
+    // =====================
+    // USA → sin filtros territoriales
+    // =====================
+    if (activeDataset === "usa") {
+        vegueriaGroup.style.display = "none";
+        provinciaGroup.style.display = "none";
+
+        // Municipis no tiene sentido en USA
+        btnMunicipi.style.display = "none";
+
+        return;
+    }
+
+    // =====================
+    // CATALUNYA
+    // =====================
+    btnMunicipi.style.display = "inline-block";
 
     if (gameMode === "MUNICIPI") {
         vegueriaGroup.style.display = "none";
@@ -58,115 +134,101 @@ function updateFiltersUI() {
     }
 }
 
+
 // =====================
 // 5. ESTILO MAPA
 // =====================
 function styleFeature(feature) {
-    const comarca = feature.properties.nom_comar;
-    const vegueria = getVegueria(comarca);
+    const name =
+        feature.properties.nom_comar ||
+        feature.properties.name;
 
+    if (completedAnswers.has(name)) {
+        return {
+            fillColor: "#4caf50",
+            fillOpacity: 0.85,
+            color: "#2e7d32",
+            weight: 1
+        };
+    }
+
+    if (activeDataset === "usa") {
+        return {
+            fillColor: getUSAColor(name),
+            fillOpacity: 0.65,
+            color: "#444",
+            weight: 1
+        };
+    }
+
+    const veg = getVegueria(name);
     return {
+        fillColor: vegueriaColors[veg] || "#bbdefb",
+        fillOpacity: 0.55,
         color: "#444",
-        weight: 1,
-        fillColor: vegueriaColors[vegueria] || "#eee",
-        fillOpacity: 0.45
+        weight: 1
     };
 }
+
 
 // =====================
 // 6. INTERACCIONES
 // =====================
 function onEachFeature(feature, layer) {
     layer.on("click", () => {
-        const clickedComarca = feature.properties.nom_comar;
+        const name =
+            feature.properties.nom_comar ||
+            feature.properties.name;
 
-        // =====================
-        // MODO MUNICIPIS
-        // =====================
-        if (gameMode === "MUNICIPI") {
-            if (!comarcaPertanyAProvincia(clickedComarca)) return;
-            if (clickedComarca === currentAnswer) {
-                layer.setStyle({
-                    fillColor: "#4caf50",
-                    fillOpacity: 0.8
-                });
+        // ya acertado → no hacer nada
+        if (completedAnswers.has(name)) return;
 
-                scoreCorrect++;
-                updateScore();
-                showCorrectWithAnswer(feedback, currentAnswer);
-
-                setTimeout(newQuestion, 1800);
-            } else {
-                layer.setStyle({
-                    fillColor: "#f44336",
-                    fillOpacity: 0.7
-                });
-
-                scoreWrong++;
-                updateScore();
-                showIncorrect(feedback);
-            }
-            return;
-        }
-
-        // =====================
-        // COMARQUES / CAPITALS
-        // =====================
-        if (clickedComarca === currentAnswer) {
-            layer.setStyle({
-                fillColor: "#4caf50",
-                fillOpacity: 0.8
-            });
+        if (name === currentAnswer) {
+            completedAnswers.add(name);
+            pendingAnswers = pendingAnswers.filter(n => n !== name);
 
             scoreCorrect++;
             updateScore();
-            showCorrectWithAnswer(feedback, currentAnswer);
 
-            setTimeout(newQuestion, 1800);
+            // 🔥 REDIBUJAR MAPA
+            geojsonLayer.setStyle(styleFeature);
+
+            feedback.textContent = "Correcte!";
+
+            setTimeout(newQuestion, 1000);
         } else {
+            scoreWrong++;
+            updateScore();
+
             layer.setStyle({
                 fillColor: "#f44336",
                 fillOpacity: 0.7
             });
 
-            scoreWrong++;
-            updateScore();
-            showIncorrect(feedback);
+            feedback.textContent = "Incorrecte!";
+
+            // volver a color base
+            setTimeout(() => {
+                geojsonLayer.setStyle(styleFeature);
+            }, 800);
         }
     });
 }
 
 
-
 // =====================
 // 8. NUEVA PREGUNTA
 // =====================
+if (gameMode === "MUNICIPI" && activeDataset === "usa") {
+    gameMode = "CAPITAL";
+}
 function newQuestion() {
-    if (geojsonLayer) {
-        resetMapStyles();
-    }
-
     feedback.textContent = "";
     feedback.className = "";
 
-    const availableComarques = activeVegueria
-        ? vegueries[activeVegueria]
-        : comarques;
-
-    if (gameMode === "COMARCA") {
-        currentAnswer = randomFrom(availableComarques);
-        currentQuestionText = "Clica: " + currentAnswer;
-        question.textContent = currentQuestionText;
-    }
-
-    if (gameMode === "CAPITAL") {
-        const filtered = Object.keys(capitals)
-            .filter(c => availableComarques.includes(c));
-
-        currentAnswer = randomFrom(filtered);
-        currentQuestionText =
-            "Clica la comarca amb capital " + capitals[currentAnswer];
-        question.textContent = currentQuestionText;
+    if (pendingAnswers.length === 0) {
+        question.textContent = "🎉 Has completat totes!";
+        return;
     }
 
     if (gameMode === "MUNICIPI") {
@@ -176,8 +238,23 @@ function newQuestion() {
         const municipi = randomFrom(Object.keys(municipis));
         currentAnswer = municipis[municipi];
 
-        currentQuestionText = "Clica la comarca on està: " + municipi;
-        question.textContent = currentQuestionText;
+        question.textContent =
+            "Clica la comarca on està: " + municipi;
+        return;
+    }
+
+    currentAnswer = randomFrom(pendingAnswers);
+
+    if (gameMode === "CAPITAL") {
+        question.textContent =
+            activeDataset === "usa"
+                ? "Clica l'estat amb capital " + capitals[currentAnswer]
+                : "Clica la comarca amb capital " + capitals[currentAnswer];
+        return;
+    }
+
+    if (gameMode === "COMARCA") {
+        question.textContent = "Clica: " + currentAnswer;
     }
 }
 
@@ -186,35 +263,11 @@ function newQuestion() {
 // 9. CARGA DE DATOS
 // =====================
 Promise.all([
-    fetch("data/comarques.geojson").then(r => r.json()),
-    fetch("data/capitals.json").then(r => r.json())
-]).then(([geoData, capitalsData]) => {
-
-    capitals = capitalsData;
-    comarques = geoData.features.map(f => f.properties.nom_comar);
-
-    geojsonLayer = L.geoJSON(geoData, {
-        style: styleFeature,
-        onEachFeature
-    }).addTo(map);
-
-    map.fitBounds(geojsonLayer.getBounds());
-
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);
-    activeVegueria = null;
-    updateVegueriaFilter();
-    newQuestion();
-});
-
-Promise.all([
-    fetch("data/municipis_girona.json").then(r => r.json()),
-    fetch("data/municipis_barcelona.json").then(r => r.json()),
-    fetch("data/municipis_lleida.json").then(r => r.json()),
-    fetch("data/municipis_tarragona.json").then(r => r.json())
+    fetch("data/catalunya/municipis_girona.json").then(r => r.json()),
+    fetch("data/catalunya/municipis_barcelona.json").then(r => r.json()),
+    fetch("data/catalunya/municipis_lleida.json").then(r => r.json()),
+    fetch("data/catalunya/municipis_tarragona.json").then(r => r.json())
 ]).then(([girona, barcelona, lleida, tarragona]) => {
-
     municipisByProvincia.Girona = girona;
     municipisByProvincia.Barcelona = barcelona;
     municipisByProvincia.Lleida = lleida;
@@ -228,14 +281,52 @@ Promise.all([
     };
 });
 
+function loadDataset(dataset) {
+    activeDataset = dataset;
+    completedAnswers.clear();
+
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    updateScore();
+
+    if (geojsonLayer) map.removeLayer(geojsonLayer);
+
+    question.textContent = "Carregant…";
+
+    const config = dataset === "usa"
+        ? {
+            geo: "data/usa/states.json",
+            capitals: "data/usa/capitals.json",
+            name: f => f.properties.name
+        }
+        : {
+            geo: "data/catalunya/comarques.geojson",
+            capitals: "data/catalunya/capitals.json",
+            name: f => f.properties.nom_comar
+        };
+
+    Promise.all([
+        fetch(config.geo).then(r => r.json()),
+        fetch(config.capitals).then(r => r.json())
+    ]).then(([geoData, capitalsData]) => {
+
+        capitals = capitalsData;
+        pendingAnswers = geoData.features.map(config.name);
+
+        geojsonLayer = L.geoJSON(geoData, {
+            style: styleFeature,
+            onEachFeature
+        }).addTo(map);
+
+        map.fitBounds(geojsonLayer.getBounds());
+        newQuestion();
+    });
+}
+
 const vegueriaSelect = document.getElementById("vegueria-select");
 
 vegueriaSelect.addEventListener("change", () => {
-    const value = vegueriaSelect.value;
-
-    activeVegueria = value === "" ? null : value;
-
-    updateVegueriaFilter();
+    activeVegueria = vegueriaSelect.value || null;
     newQuestion();
 });
 
@@ -245,6 +336,7 @@ provinciaSelect.addEventListener("change", () => {
     activeProvincia = provinciaSelect.value;
     newQuestion();
 });
+
 
 // =====================
 // 10. BOTONES MODO JUEGO
@@ -290,3 +382,15 @@ btnMunicipi.addEventListener("click", () => {
     updateFiltersUI();
     newQuestion();
 });
+
+loadDataset("catalunya");
+updateModeLabels();
+
+function getUSAColor(state) {
+    for (const region in usaRegions) {
+        if (usaRegions[region].includes(state)) {
+            return regionColors[region];
+        }
+    }
+    return regionColors.default;
+}

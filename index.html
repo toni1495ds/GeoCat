@@ -21,6 +21,15 @@
         <!-- CONTROLS -->
         <div id="controls">
 
+            <!-- 🌍 SELECTOR MAPA -->
+            <div class="control-group">
+                <label for="dataset-select">Mapa:</label>
+                <select id="dataset-select">
+                    <option value="catalunya">Catalunya</option>
+                    <option value="usa">USA</option>
+                </select>
+            </div>
+
             <!-- Mode joc -->
             <div class="control-group">
                 <button id="mode-comarca">Comarques</button>
@@ -78,7 +87,6 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="utils.js?v=1.0.1"></script>
         <script src="app.js?v=1.0.1"></script>
-
 </body>
 
 </html>

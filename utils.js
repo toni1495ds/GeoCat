@@ -44,6 +44,8 @@ function comarcaPertanyAProvincia(comarca) {
 // MAPA / ESTILOS
 // =====================
 function resetMapStyles() {
+    if (!geojsonLayer) return;
+
     geojsonLayer.eachLayer(layer => {
         geojsonLayer.resetStyle(layer);
     });
@@ -56,6 +58,8 @@ function resetMapStyles() {
 }
 
 function updateProvinciaFilterOnMap() {
+    if (!geojsonLayer) return;
+
     geojsonLayer.eachLayer(layer => {
         const comarca = layer.feature.properties.nom_comar;
 
@@ -63,42 +67,38 @@ function updateProvinciaFilterOnMap() {
             municipisByProvincia[activeProvincia] || {}
         );
 
-        const isInProvincia = comarquesProvincia.includes(comarca);
+        const isInProvincia = !activeProvincia ||
+            comarquesProvincia.includes(comarca);
 
-        if (!activeProvincia || isInProvincia) {
-            layer.setStyle({
-                fillOpacity: 0.55,
-                color: "#222"
-            });
-        } else {
-            layer.setStyle({
-                fillOpacity: 0.05,
-                color: "#bbb"
-            });
-        }
+        layer.setStyle({
+            fillOpacity: isInProvincia ? 0.6 : 0.05,
+            opacity: isInProvincia ? 1 : 0.3
+        });
     });
 }
 
+
 function updateVegueriaFilter() {
+    if (!geojsonLayer) return;
+
     geojsonLayer.eachLayer(layer => {
         const comarca = layer.feature.properties.nom_comar;
         const vegueria = getVegueria(comarca);
 
         if (!activeVegueria || vegueria === activeVegueria) {
             layer.setStyle({
-                fillOpacity: 0.55,
-                color: "#222",
-                weight: 1.5
+                fillOpacity: 0.6,
+                opacity: 1
             });
         } else {
             layer.setStyle({
                 fillOpacity: 0.08,
-                color: "#bbb",
-                weight: 1
+                opacity: 0.4
             });
         }
     });
 }
+
 
 function showCorrect() {
     feedback.textContent = "Correcte!";
@@ -118,4 +118,28 @@ function updateScore() {
 function showCorrectWithAnswer(el, comarca) {
     el.textContent = `Correcte! És ${comarca}`;
     el.className = "correcte";
+}
+
+function getFeatureName(feature) {
+    if (activeDataset === "catalunya") {
+        return feature.properties.nom_comar;
+    }
+
+    if (activeDataset === "usa") {
+        return feature.properties.name;
+    }
+
+    return null;
+}
+
+function updateModeLabels() {
+    if (activeDataset === "usa") {
+        btnComarca.textContent = "Estats";
+        btnCapital.textContent = "Capitals";
+        btnMunicipi.style.display = "none"; // USA no tiene municipis
+    } else {
+        btnComarca.textContent = "Comarques";
+        btnCapital.textContent = "Capitals";
+        btnMunicipi.style.display = "inline-block";
+    }
 }

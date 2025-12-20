@@ -104,3 +104,9 @@ select {
     background: #fdecea;
     color: #c62828;
 }
+
+#dataset-select {
+    padding: 6px;
+    font-size: 14px;
+    margin-left: 6px;
+}
