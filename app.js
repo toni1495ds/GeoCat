@@ -1,43 +1,45 @@
 // =====================
-// 1. MAPA
+// ESTAT GLOBAL
 // =====================
-const map = L.map("map").setView([41.7, 1.8], 7);
-let geojsonLayer;
+let currentUser = null;
+let selectedDataset = 'catalunya';
 
-// =====================
-// DATASETS
-// =====================
-const DATASETS = {
-    catalunya: {
-        geojson: "data/catalunya/comarques.geojson",
-        capitals: "data/catalunya/capitals.json",
-        center: [41.7, 1.8],
-        zoom: 7,
-        featureName: f => f.properties.nom_comar
-    }
-};
-
-// =====================
-// 2. ESTADO GLOBAL
-// =====================
-let comarques = [];
+let map = null;
+let geojsonLayer = null;
 let capitals = {};
-let municipisByProvincia = {
-    Girona: {},
-    Barcelona: {},
-    Lleida: {},
-    Tarragona: {}
-};
+let municipisByProvincia = { Girona: {}, Barcelona: {}, Lleida: {}, Tarragona: {} };
 let municipis = {};
-let activeProvincia = "";
+let activeProvincia = '';
 let currentAnswer = null;
-let currentQuestionText = "";
-let gameMode = "CAPITAL";
-let activeDataset = "usa"; // solo usa de momento
-let allFeatures = [];
+let gameMode = 'CAPITAL';
+let activeDataset = 'catalunya';
 let pendingAnswers = [];
 let completedAnswers = new Set();
+let activeVegueria = null;
+let scoreCorrect = 0;
+let scoreWrong = 0;
 
+// =====================
+// DADES ESTÀTIQUES
+// =====================
+const vegueries = {
+    "Alt Pirineu i Aran": ["Alta Ribagorça", "Alt Urgell", "Cerdanya", "Pallars Jussà", "Pallars Sobirà", "Aran"],
+    "Girona": ["Alt Empordà", "Baix Empordà", "Garrotxa", "Gironès", "Pla de l'Estany", "Selva"],
+    "Catalunya Central": ["Bages", "Berguedà", "Moianès", "Osona", "Solsonès"],
+    "Barcelona": ["Barcelonès", "Baix Llobregat", "Maresme", "Vallès Occidental", "Vallès Oriental", "Anoia", "Garraf", "Alt Penedès"],
+    "Lleida": ["Garrigues", "Noguera", "Pla d'Urgell", "Segarra", "Segrià", "Urgell"],
+    "Camp de Tarragona": ["Alt Camp", "Baix Camp", "Conca de Barberà", "Priorat", "Tarragonès"],
+    "Terres de l'Ebre": ["Baix Ebre", "Montsià", "Ribera d'Ebre", "Terra Alta"]
+};
+const vegueriaColors = {
+    "Alt Pirineu i Aran": "#90caf9",
+    "Girona": "#81c784",
+    "Catalunya Central": "#ffcc80",
+    "Barcelona": "#ce93d8",
+    "Lleida": "#fff176",
+    "Camp de Tarragona": "#ffab91",
+    "Terres de l'Ebre": "#80deea"
+};
 const usaRegions = {
     west_coast: ["California", "Oregon", "Washington"],
     rocky_mountain: ["Idaho", "Montana", "Wyoming", "Utah", "Colorado"],
@@ -46,363 +48,277 @@ const usaRegions = {
     midwest: ["Minnesota", "Iowa", "Missouri", "Wisconsin", "Illinois", "Indiana", "Michigan", "Ohio"],
     south: ["Arkansas", "Louisiana", "Mississippi", "Alabama", "Georgia", "Florida", "South Carolina", "North Carolina", "Tennessee", "Kentucky", "West Virginia", "Virginia"],
     mid_atlantic: ["Pennsylvania", "New Jersey", "Delaware", "Maryland", "District of Columbia", "New York"],
-    new_england: ["Maine", "New Hampshire", "Vermont", "Massachusetts", "Rhode Island", "Connecticut"],
+    new_england: ["Maine", "New Hampshire", "Vermont", "Massachusetts", "Rhode Island", "Connecticut"]
 };
-
 const usaRegionColors = {
-    west_coast: "#d16ba5",       // rosa
-    rocky_mountain: "#4d96d7",   // azul
-    great_plains: "#b5c800",     // verde amarillento
-    midwest: "#4db6ac",          // turquesa
-    southwest: "#4caf50",        // verde
-    south: "#ff9800",            // naranja
-    mid_atlantic: "#fbc02d",     // amarillo
-    new_england: "#e53935",      // rojo
+    west_coast: "#d16ba5",
+    rocky_mountain: "#4d96d7",
+    great_plains: "#b5c800",
+    midwest: "#4db6ac",
+    southwest: "#4caf50",
+    south: "#ff9800",
+    mid_atlantic: "#fbc02d",
+    new_england: "#e53935"
 };
 
-let activeVegueria = null;
+// =====================
+// AUTH
+// =====================
+let isRegisterMode = false;
 
-const question = document.getElementById("question");
-const feedback = document.getElementById("feedback");
-
-let scoreCorrect = 0;
-let scoreWrong = 0;
-
-const scoreCorrectEl = document.getElementById("score-correct");
-const scoreWrongEl = document.getElementById("score-wrong");
-
-const datasetSelect = document.getElementById("dataset-select");
-
-datasetSelect.addEventListener("change", () => {
-    const dataset = datasetSelect.value;
-
-    activeDataset = dataset;
-
-    // reset scores
-    scoreCorrect = 0;
-    scoreWrong = 0;
-    updateScore();
-
-    // reset filtros
-    activeVegueria = null;
-    activeProvincia = "";
-
-    // USA solo Capitals
-    if (dataset === "usa") {
-        gameMode = "CAPITAL";
-
-        btnCapital.classList.add("active");
-        btnComarca.classList.remove("active");
-        btnMunicipi.classList.remove("active");
-    }
-
-    updateModeLabels();
-    updateFiltersUI();
-    loadDataset(dataset);
+document.getElementById('login-toggle-link').addEventListener('click', () => {
+    isRegisterMode = !isRegisterMode;
+    document.getElementById('btn-login-submit').textContent = isRegisterMode ? "Registra't" : 'Entrar';
+    document.getElementById('login-toggle-link').textContent = isRegisterMode ? 'Inicia sessió' : "Registra't";
+    document.getElementById('login-toggle-text').textContent = isRegisterMode ? 'Ja tens compte? ' : 'No tens compte? ';
+    document.getElementById('login-error').textContent = '';
 });
 
-// =====================
-// 3. DATOS ESTÁTICOS
-// =====================
-const vegueries = { "Alt Pirineu i Aran": ["Alta Ribagorça", "Alt Urgell", "Cerdanya", "Pallars Jussà", "Pallars Sobirà", "Aran"], "Girona": ["Alt Empordà", "Baix Empordà", "Garrotxa", "Gironès", "Pla de l'Estany", "Selva"], "Catalunya Central": ["Bages", "Berguedà", "Moianès", "Osona", "Solsonès"], "Barcelona": ["Barcelonès", "Baix Llobregat", "Maresme", "Vallès Occidental", "Vallès Oriental", "Anoia", "Garraf", "Alt Penedès"], "Lleida": ["Garrigues", "Noguera", "Pla d'Urgell", "Segarra", "Segrià", "Urgell"], "Camp de Tarragona": ["Alt Camp", "Baix Camp", "Conca de Barberà", "Priorat", "Tarragonès"], "Terres de l'Ebre": ["Baix Ebre", "Montsià", "Ribera d'Ebre", "Terra Alta"] };
-const vegueriaColors = { "Alt Pirineu i Aran": "#90caf9", "Girona": "#81c784", "Catalunya Central": "#ffcc80", "Barcelona": "#ce93d8", "Lleida": "#fff176", "Camp de Tarragona": "#ffab91", "Terres de l'Ebre": "#80deea" };
+document.getElementById('btn-login-submit').addEventListener('click', handleAuth);
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
+document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-password').focus(); });
 
-// =====================
-// 4. HELPERS
-// =====================
-function updateFiltersUI() {
-    const vegueriaGroup = document.getElementById("vegueria-filter");
-    const provinciaGroup = document.getElementById("provincia-filter");
+function handleAuth() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const err = document.getElementById('login-error');
 
-    // =====================
-    // USA → sin filtros territoriales
-    // =====================
-    if (activeDataset === "usa") {
-        vegueriaGroup.style.display = "none";
-        provinciaGroup.style.display = "none";
+    if (!username || !password) { err.textContent = 'Omple tots els camps'; return; }
+    if (username.length < 3) { err.textContent = "Nom d'usuari massa curt (mínim 3 caràcters)"; return; }
 
-        // Municipis no tiene sentido en USA
-        btnMunicipi.style.display = "none";
+    const users = getUsers();
 
-        return;
-    }
-
-    // =====================
-    // CATALUNYA
-    // =====================
-    btnMunicipi.style.display = "inline-block";
-
-    if (gameMode === "MUNICIPI") {
-        vegueriaGroup.style.display = "none";
-        provinciaGroup.style.display = "block";
+    if (isRegisterMode) {
+        if (users[username]) { err.textContent = 'Aquest usuari ja existeix'; return; }
+        if (password.length < 4) { err.textContent = 'Contrasenya massa curta (mínim 4 caràcters)'; return; }
+        users[username] = { password };
+        saveUsers(users);
+        setSession(username);
+        currentUser = username;
+        enterHome();
     } else {
-        vegueriaGroup.style.display = "block";
-        provinciaGroup.style.display = "none";
+        if (!users[username]) { err.textContent = 'Usuari no trobat'; return; }
+        if (users[username].password !== password) { err.textContent = 'Contrasenya incorrecta'; return; }
+        setSession(username);
+        currentUser = username;
+        enterHome();
     }
 }
 
+// =====================
+// HOME
+// =====================
+function selectDataset(ds) {
+    selectedDataset = ds;
+    document.querySelectorAll('.mode-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.dataset === ds);
+    });
+}
+
+function startGame() {
+    activeDataset = selectedDataset;
+    document.getElementById('dataset-select').value = activeDataset;
+    showScreen('screen-game');
+    setTimeout(() => {
+        initMap();
+        loadDataset(activeDataset);
+        updateModeLabels();
+        updateFiltersUI();
+    }, 100);
+}
+
+function goHome() {
+    if (scoreCorrect + scoreWrong > 0) {
+        saveScore(currentUser, scoreCorrect, scoreCorrect + scoreWrong);
+    }
+    document.getElementById('modal-gameover').classList.remove('show');
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    showScreen('screen-home');
+}
+
+function restartGame() {
+    document.getElementById('modal-gameover').classList.remove('show');
+    loadDataset(activeDataset);
+}
 
 // =====================
-// 5. ESTILO MAPA
+// MAPA
 // =====================
+function initMap() {
+    if (map) return;
+    map = L.map('map').setView([41.7, 1.8], 7);
+}
+
 function styleFeature(feature) {
-    const name =
-        feature.properties.nom_comar ||
-        feature.properties.name;
-
+    const name = feature.properties.nom_comar || feature.properties.name;
     if (completedAnswers.has(name)) {
-        return {
-            fillColor: "#4caf50",
-            fillOpacity: 0.85,
-            color: "#2e7d32",
-            weight: 1
-        };
+        return { fillColor: '#2ecc71', fillOpacity: 0.85, color: '#1a7a43', weight: 1.5 };
     }
-
-    // ===== USA =====
-    if (activeDataset === "usa") {
-        const stateName = feature.properties.name;
-        const region = getUSARegion(stateName);
-
-        return {
-            fillColor: usaRegionColors[region] || "#e0e0e0",
-            fillOpacity: 0.65,
-            color: "#444",
-            weight: 1
-        };
+    if (activeDataset === 'usa') {
+        return { fillColor: usaRegionColors[getUSARegion(name)] || '#555', fillOpacity: 0.6, color: '#333', weight: 1 };
     }
-
-
-    const veg = getVegueria(name);
-    return {
-        fillColor: vegueriaColors[veg] || "#bbdefb",
-        fillOpacity: 0.55,
-        color: "#444",
-        weight: 1
-    };
+    return { fillColor: vegueriaColors[getVegueria(name)] || '#90caf9', fillOpacity: 0.5, color: '#333', weight: 1 };
 }
 
-
-// =====================
-// 6. INTERACCIONES
-// =====================
 function onEachFeature(feature, layer) {
-    layer.on("click", () => {
-        const name =
-            feature.properties.nom_comar ||
-            feature.properties.name;
-
-        // ya acertado → no hacer nada
+    layer.on('click', () => {
+        const name = feature.properties.nom_comar || feature.properties.name;
         if (completedAnswers.has(name)) return;
 
         if (name === currentAnswer) {
             completedAnswers.add(name);
             pendingAnswers = pendingAnswers.filter(n => n !== name);
-
             scoreCorrect++;
             updateScore();
-
-            // 🔥 REDIBUJAR MAPA
             geojsonLayer.setStyle(styleFeature);
-
-            feedback.textContent = "Correcte!";
-
-            setTimeout(newQuestion, 1000);
+            showFeedback(true);
+            if (pendingAnswers.length === 0) {
+                setTimeout(showGameOver, 700);
+            } else {
+                setTimeout(newQuestion, 900);
+            }
         } else {
             scoreWrong++;
             updateScore();
-
-            layer.setStyle({
-                fillColor: "#f44336",
-                fillOpacity: 0.7
-            });
-
-            feedback.textContent = "Incorrecte!";
-
-            // volver a color base
-            setTimeout(() => {
-                geojsonLayer.setStyle(styleFeature);
-            }, 800);
+            layer.setStyle({ fillColor: '#D62828', fillOpacity: 0.75 });
+            showFeedback(false);
+            setTimeout(() => { if (geojsonLayer) geojsonLayer.setStyle(styleFeature); }, 700);
         }
+    });
+
+    layer.on('mouseover', function () {
+        const name = feature.properties.nom_comar || feature.properties.name;
+        if (!completedAnswers.has(name)) this.setStyle({ weight: 2.5, fillOpacity: 0.8 });
+    });
+    layer.on('mouseout', function () {
+        if (geojsonLayer) geojsonLayer.setStyle(styleFeature);
     });
 }
 
-
 // =====================
-// 8. NUEVA PREGUNTA
+// NOVA PREGUNTA
 // =====================
-if (gameMode === "MUNICIPI" && activeDataset === "usa") {
-    gameMode = "CAPITAL";
-}
 function newQuestion() {
-    feedback.textContent = "";
-    feedback.className = "";
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = '';
 
-    if (pendingAnswers.length === 0) {
-        question.textContent = "🎉 Has completat totes!";
-        return;
-    }
+    if (pendingAnswers.length === 0) { showGameOver(); return; }
 
-    if (gameMode === "MUNICIPI") {
+    if (gameMode === 'MUNICIPI') {
         updateMunicipisByProvincia();
         updateProvinciaFilterOnMap();
-
         const municipi = randomFrom(Object.keys(municipis));
         currentAnswer = municipis[municipi];
-
-        question.textContent =
-            "Clica la comarca on està: " + municipi;
+        document.getElementById('question').textContent = '📍 On és el municipi: ' + municipi;
         return;
     }
 
-    currentAnswer = randomFrom(pendingAnswers);
+    const filtered = activeVegueria
+        ? pendingAnswers.filter(n => getVegueria(n) === activeVegueria)
+        : pendingAnswers;
+    currentAnswer = randomFrom(filtered.length > 0 ? filtered : pendingAnswers);
 
-    if (gameMode === "CAPITAL") {
-        question.textContent =
-            activeDataset === "usa"
-                ? "Clica l'estat amb capital " + capitals[currentAnswer]
-                : "Clica la comarca amb capital " + capitals[currentAnswer];
-        return;
-    }
-
-    if (gameMode === "COMARCA") {
-        question.textContent = "Clica: " + currentAnswer;
+    if (gameMode === 'CAPITAL') {
+        document.getElementById('question').textContent = activeDataset === 'usa'
+            ? "🦅 Clica l'estat amb capital: " + capitals[currentAnswer]
+            : '🏛️ Clica la comarca amb capital: ' + capitals[currentAnswer];
+    } else {
+        document.getElementById('question').textContent = '🗺️ Clica la comarca: ' + currentAnswer;
     }
 }
 
-
 // =====================
-// 9. CARGA DE DATOS
+// CÀRREGA DE DADES
 // =====================
-Promise.all([
-    fetch("data/catalunya/municipis_girona.json").then(r => r.json()),
-    fetch("data/catalunya/municipis_barcelona.json").then(r => r.json()),
-    fetch("data/catalunya/municipis_lleida.json").then(r => r.json()),
-    fetch("data/catalunya/municipis_tarragona.json").then(r => r.json())
-]).then(([girona, barcelona, lleida, tarragona]) => {
-    municipisByProvincia.Girona = girona;
-    municipisByProvincia.Barcelona = barcelona;
-    municipisByProvincia.Lleida = lleida;
-    municipisByProvincia.Tarragona = tarragona;
-
-    municipis = {
-        ...girona,
-        ...barcelona,
-        ...lleida,
-        ...tarragona
-    };
-});
-
 function loadDataset(dataset) {
     activeDataset = dataset;
     completedAnswers.clear();
-
     scoreCorrect = 0;
     scoreWrong = 0;
     updateScore();
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('question').textContent = 'Carregant…';
 
-    if (geojsonLayer) map.removeLayer(geojsonLayer);
+    if (geojsonLayer) { map.removeLayer(geojsonLayer); geojsonLayer = null; }
 
-    question.textContent = "Carregant…";
-
-    const config = dataset === "usa"
-        ? {
-            geo: "data/usa/states.json",
-            capitals: "data/usa/capitals.json",
-            name: f => f.properties.name
-        }
-        : {
-            geo: "data/catalunya/comarques.geojson",
-            capitals: "data/catalunya/capitals.json",
-            name: f => f.properties.nom_comar
-        };
+    const config = dataset === 'usa'
+        ? { geo: 'data/usa/states.json', capitals: 'data/usa/capitals.json', name: f => f.properties.name }
+        : { geo: 'data/catalunya/comarques.geojson', capitals: 'data/catalunya/capitals.json', name: f => f.properties.nom_comar };
 
     Promise.all([
         fetch(config.geo).then(r => r.json()),
         fetch(config.capitals).then(r => r.json())
-    ]).then(([geoData, capitalsData]) => {
-
-        capitals = capitalsData;
+    ]).then(([geoData, capsData]) => {
+        capitals = capsData;
         pendingAnswers = geoData.features.map(config.name);
-
-        geojsonLayer = L.geoJSON(geoData, {
-            style: styleFeature,
-            onEachFeature
-        }).addTo(map);
-
+        geojsonLayer = L.geoJSON(geoData, { style: styleFeature, onEachFeature }).addTo(map);
         map.fitBounds(geojsonLayer.getBounds());
         newQuestion();
     });
 }
 
-const vegueriaSelect = document.getElementById("vegueria-select");
-
-vegueriaSelect.addEventListener("change", () => {
-    activeVegueria = vegueriaSelect.value || null;
-    newQuestion();
+// Càrrega municipis en paral·lel
+Promise.all([
+    fetch('data/catalunya/municipis_girona.json').then(r => r.json()).catch(() => ({})),
+    fetch('data/catalunya/municipis_barcelona.json').then(r => r.json()).catch(() => ({})),
+    fetch('data/catalunya/municipis_lleida.json').then(r => r.json()).catch(() => ({})),
+    fetch('data/catalunya/municipis_tarragona.json').then(r => r.json()).catch(() => ({}))
+]).then(([g, b, l, t]) => {
+    municipisByProvincia.Girona = g;
+    municipisByProvincia.Barcelona = b;
+    municipisByProvincia.Lleida = l;
+    municipisByProvincia.Tarragona = t;
+    municipis = { ...g, ...b, ...l, ...t };
 });
-
-const provinciaSelect = document.getElementById("provincia-select");
-
-provinciaSelect.addEventListener("change", () => {
-    activeProvincia = provinciaSelect.value;
-    newQuestion();
-});
-
 
 // =====================
-// 10. BOTONES MODO JUEGO
+// CONTROLS JOC
 // =====================
-const btnComarca = document.getElementById("mode-comarca");
-const btnCapital = document.getElementById("mode-capital");
-const btnMunicipi = document.getElementById("mode-municipi");
-
-btnComarca.addEventListener("click", () => {
-    gameMode = "COMARCA";
-
-    btnComarca.classList.add("active");
-    btnCapital.classList.remove("active");
-    btnMunicipi.classList.remove("active");
-
-    updateFiltersUI();
-    newQuestion();
-});
-
-
-btnCapital.addEventListener("click", () => {
-    gameMode = "CAPITAL";
-
-    btnCapital.classList.add("active");
-    btnComarca.classList.remove("active");
-    btnMunicipi.classList.remove("active");
-
-    updateFiltersUI();
-    newQuestion();
-});
-
-
-btnMunicipi.addEventListener("click", () => {
-    gameMode = "MUNICIPI";
-
-    btnMunicipi.classList.add("active");
-    btnComarca.classList.remove("active");
-    btnCapital.classList.remove("active");
-
+function setMode(mode) {
+    gameMode = mode;
+    document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+    document.getElementById({ COMARCA: 'mode-comarca', CAPITAL: 'mode-capital', MUNICIPI: 'mode-municipi' }[mode]).classList.add('active');
     activeVegueria = null;
-    activeProvincia = "";
-
+    activeProvincia = '';
+    document.getElementById('vegueria-select').value = '';
+    document.getElementById('provincia-select').value = '';
     updateFiltersUI();
     newQuestion();
-});
-
-loadDataset("catalunya");
-updateModeLabels();
-
-function getUSARegion(stateName) {
-    for (const region in usaRegions) {
-        if (usaRegions[region].includes(stateName)) {
-            return region;
-        }
-    }
-    return null;
 }
+
+function changeDataset() {
+    activeDataset = document.getElementById('dataset-select').value;
+    if (activeDataset === 'usa') {
+        gameMode = 'CAPITAL';
+        document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+        document.getElementById('mode-capital').classList.add('active');
+    }
+    updateModeLabels();
+    updateFiltersUI();
+    loadDataset(activeDataset);
+}
+
+function changeVegueria() {
+    activeVegueria = document.getElementById('vegueria-select').value || null;
+    updateVegueriaFilter();
+    newQuestion();
+}
+
+function changeProvincia() {
+    activeProvincia = document.getElementById('provincia-select').value;
+    newQuestion();
+}
+
+// =====================
+// INIT
+// =====================
+window.addEventListener('DOMContentLoaded', () => {
+    const session = getSession();
+    if (session && getUsers()[session]) {
+        currentUser = session;
+        enterHome();
+    } else {
+        showScreen('screen-login');
+    }
+});
