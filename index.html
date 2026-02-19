@@ -3,45 +3,88 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Mapa de Catalunya – Pràctica Bombers</title>
-
-    <!-- Leaflet CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoCat – Pràctica Bombers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-    <!-- UI SUPERIOR -->
-    <div id="ui">
+    <!-- LOGIN -->
+    <div class="screen" id="screen-login">
+        <div class="login-box">
+            <div>
+                <div class="logo-mark">GEO<br>CAT</div>
+                <div class="logo-sub">Pràctica Bombers</div>
+            </div>
+            <div class="login-form">
+                <div id="login-error" class="login-error"></div>
+                <input class="form-input" id="login-username" type="text" placeholder="Nom d'usuari"
+                    autocomplete="off" />
+                <input class="form-input" id="login-password" type="password" placeholder="Contrasenya" />
+                <button class="btn-primary" id="btn-login-submit">Entrar</button>
+            </div>
+            <div class="login-toggle">
+                <span id="login-toggle-text">No tens compte? </span><span id="login-toggle-link">Registra't</span>
+            </div>
+        </div>
+    </div>
 
-        <h1>Mapa de Catalunya – Pràctica Comarques</h1>
+    <!-- HOME -->
+    <div class="screen hidden" id="screen-home">
+        <div class="home-header">
+            <div class="home-logo">GEOCAT</div>
+            <div class="home-user">
+                <span id="home-username-text"></span>
+                <div class="avatar" id="home-avatar"></div>
+                <button onclick="logout()" class="btn-logout">Sortir</button>
+            </div>
+        </div>
+        <div class="home-hero">
+            <h1 class="home-title">Aprèn <span>Catalunya</span><br>fent-ho bé.</h1>
+            <p class="home-subtitle">Selecciona un mapa i practica comarques, capitals i municipis. Guanya punts i puja
+                al rànquing.</p>
+        </div>
+        <div class="home-grid">
+            <div class="mode-card selected" data-dataset="catalunya" onclick="selectDataset('catalunya')">
+                <div class="card-icon">🏔️</div>
+                <div class="card-title">Catalunya</div>
+                <div class="card-desc">Comarques, capitals i municipis</div>
+            </div>
+            <div class="mode-card" data-dataset="usa" onclick="selectDataset('usa')">
+                <div class="card-icon">🦅</div>
+                <div class="card-title">USA</div>
+                <div class="card-desc">Estats i capitals americanes</div>
+            </div>
+        </div>
+        <div class="home-actions">
+            <button class="btn-start" onclick="startGame()">▶ Comença</button>
+            <button class="btn-leaderboard" onclick="showLeaderboard()">🏆 Rànquing</button>
+        </div>
+    </div>
 
-        <!-- CONTROLS -->
-        <div id="controls">
-
-            <!-- 🌍 SELECTOR MAPA -->
-            <div class="control-group">
-                <label for="dataset-select">Mapa:</label>
-                <select id="dataset-select">
+    <!-- GAME -->
+    <div class="screen hidden" id="screen-game">
+        <div id="game-topbar">
+            <div class="topbar-left">
+                <button id="btn-back" onclick="goHome()">←</button>
+                <div class="game-logo">GEOCAT</div>
+            </div>
+            <div class="topbar-controls">
+                <select id="dataset-select" class="topbar-select" onchange="changeDataset()">
                     <option value="catalunya">Catalunya</option>
                     <option value="usa">USA</option>
                 </select>
-            </div>
-
-            <!-- Mode joc -->
-            <div class="control-group">
-                <button id="mode-comarca">Comarques</button>
-                <button id="mode-capital" class="active">Capitals</button>
-                <button id="mode-municipi">Municipis</button>
-            </div>
-
-            <!-- FILTRE VEGUERIA (COMARQUES / CAPITALS) -->
-            <div class="control-group" id="vegueria-filter">
-                <label for="vegueria-select">Vegueria:</label>
-                <select id="vegueria-select">
-                    <option value="">Totes</option>
+                <button class="btn-mode" id="mode-comarca" onclick="setMode('COMARCA')">Comarques</button>
+                <button class="btn-mode active" id="mode-capital" onclick="setMode('CAPITAL')">Capitals</button>
+                <button class="btn-mode" id="mode-municipi" onclick="setMode('MUNICIPI')">Municipis</button>
+                <select id="vegueria-select" class="topbar-select" onchange="changeVegueria()" style="display:none;">
+                    <option value="">Totes les vegueries</option>
                     <option value="Girona">Girona</option>
                     <option value="Barcelona">Barcelona</option>
                     <option value="Catalunya Central">Catalunya Central</option>
@@ -50,43 +93,64 @@
                     <option value="Terres de l'Ebre">Terres de l'Ebre</option>
                     <option value="Alt Pirineu i Aran">Alt Pirineu i Aran</option>
                 </select>
-            </div>
-
-            <!-- FILTRE PROVÍNCIA (NOMÉS MUNICIPIS) -->
-            <div class="control-group" id="provincia-filter" style="display:none;">
-                <label for="provincia-select">Província:</label>
-                <select id="provincia-select">
-                    <option value="">Totes</option>
+                <select id="provincia-select" class="topbar-select" onchange="changeProvincia()" style="display:none;">
+                    <option value="">Totes les províncies</option>
                     <option value="Girona">Girona</option>
                     <option value="Barcelona">Barcelona</option>
                     <option value="Lleida">Lleida</option>
                     <option value="Tarragona">Tarragona</option>
                 </select>
             </div>
-
         </div>
-
-        <!-- PREGUNTA -->
-        <p id="question">Clica la comarca correcta</p>
-        <div id="status-bar">
-            <span id="feedback"></span>
-            <div id="score">
-                <span class="score correct">
-                    ✓ <span id="score-correct">0</span>
-                </span>
-                <span class="score wrong">
-                    ✗ <span id="score-wrong">0</span>
-                </span>
+        <div id="game-question-bar">
+            <p id="question">Carregant…</p>
+            <div id="status-bar">
+                <span id="feedback"></span>
+                <div id="score">
+                    <span class="score correct">✓ <span id="score-correct">0</span></span>
+                    <span class="score wrong">✗ <span id="score-wrong">0</span></span>
+                </div>
             </div>
         </div>
-
-        <!-- MAPA -->
         <div id="map"></div>
+    </div>
 
-        <!-- Leaflet JS -->
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="utils.js?v=1.0.1"></script>
-        <script src="app.js?v=1.0.1"></script>
+    <!-- LEADERBOARD -->
+    <div class="screen hidden" id="screen-leaderboard">
+        <div class="lb-header">
+            <div class="lb-title">🏆 Rànquing</div>
+            <button id="btn-lb-back" onclick="goHome()">←</button>
+        </div>
+        <div class="lb-list" id="lb-list"></div>
+    </div>
+
+    <!-- MODAL FI DE PARTIDA -->
+    <div id="modal-gameover">
+        <div class="modal-box">
+            <div class="modal-emoji" id="modal-emoji">🎉</div>
+            <div class="modal-title" id="modal-title">Completat!</div>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="modal-correct">0</div>
+                    <div class="modal-stat-label">Correctes</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-val" id="modal-wrong" style="color:var(--red)">0</div>
+                    <div class="modal-stat-label">Errors</div>
+                </div>
+            </div>
+            <div class="modal-accuracy" id="modal-accuracy"></div>
+            <div class="modal-actions">
+                <button class="btn-modal-primary" onclick="restartGame()">▶ Tornar a jugar</button>
+                <button class="btn-modal-secondary" onclick="goHome()">Menú principal</button>
+                <button class="btn-modal-secondary" onclick="showLeaderboard()">🏆 Veure rànquing</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="utils.js?v=2.0"></script>
+    <script src="app.js?v=2.0"></script>
 </body>
 
 </html>
