@@ -23,7 +23,7 @@ let scoreWrong = 0;
 // DADES ESTÀTIQUES
 // =====================
 const vegueries = {
-    "Alt Pirineu i Aran": ["Alta Ribagorça", "Alt Urgell", "Cerdanya", "Pallars Jussà", "Pallars Sobirà", "Aran"],
+    "Alt Pirineu i Aran": ["Alta Ribagorça", "Alt Urgell", "Cerdanya", "Pallars Jussà", "Pallars Sobirà", "Val d'Aran"],
     "Girona": ["Alt Empordà", "Baix Empordà", "Garrotxa", "Gironès", "Pla de l'Estany", "Selva"],
     "Catalunya Central": ["Bages", "Berguedà", "Moianès", "Osona", "Solsonès"],
     "Barcelona": ["Barcelonès", "Baix Llobregat", "Maresme", "Vallès Occidental", "Vallès Oriental", "Anoia", "Garraf", "Alt Penedès"],
