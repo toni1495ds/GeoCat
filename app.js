@@ -42,6 +42,7 @@ const vegueries = {
     "Garrotxa",
     "Gironès",
     "Pla de l'Estany",
+    "Ripollès",
     "Selva",
   ],
   "Catalunya Central": ["Bages", "Berguedà", "Osona", "Solsonès"],
@@ -54,6 +55,7 @@ const vegueries = {
     "Anoia",
     "Garraf",
     "Alt Penedès",
+    "Baix Penedès",
   ],
   Lleida: [
     "Garrigues",
