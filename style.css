@@ -163,11 +163,13 @@ html, body {
 .login-wrap {
   width: 100%;
   max-width: 460px;
-  padding: 0 24px;
+  padding: 40px 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
+  overflow-y: auto;
+  max-height: 100vh;
 }
 
 /* logo */
@@ -177,7 +179,7 @@ html, body {
 }
 .ll-geo {
   font-family: 'Bebas Neue', cursive;
-  font-size: clamp(68px, 16vw, 118px);
+  font-size: clamp(52px, 13vw, 118px);
   line-height: .88;
   letter-spacing: 8px;
   color: var(--red);
@@ -189,7 +191,7 @@ html, body {
 }
 .ll-cat {
   font-family: 'Bebas Neue', cursive;
-  font-size: clamp(68px, 16vw, 118px);
+  font-size: clamp(52px, 13vw, 118px);
   line-height: .88;
   letter-spacing: 8px;
   color: var(--text);
@@ -443,6 +445,7 @@ html, body {
 .btn-nav-logout:hover { border-color: var(--red); color: var(--text); }
 
 /* hero */
+.home-hero { }
 .hero-label {
   display: inline-flex;
   align-items: center;
@@ -641,8 +644,11 @@ html, body {
   font-family: 'Bebas Neue', cursive;
   font-size: 22px;
   letter-spacing: 3px;
-  color: var(--text);
+  color: var(--text); 
+  cursor: pointer; 
+transition: opacity .2s;
 }
+.game-logo:hover { opacity: .7; }
 .game-logo span { color: var(--red); }
 
 .topbar-controls {
