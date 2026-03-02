@@ -445,7 +445,6 @@ html, body {
 .btn-nav-logout:hover { border-color: var(--red); color: var(--text); }
 
 /* hero */
-.home-hero { }
 .hero-label {
   display: inline-flex;
   align-items: center;
