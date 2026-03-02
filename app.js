@@ -23,6 +23,7 @@ let completedAnswers = new Set();
 let activeVegueria = null;
 let scoreCorrect = 0;
 let scoreWrong = 0;
+let scoreSaved = false;
 
 // =====================
 // DADES ESTÀTIQUES
@@ -175,7 +176,7 @@ document.getElementById("login-username").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("login-password").focus();
 });
 
-function handleAuth() {
+async function handleAuth() {
   const username = document.getElementById("login-username").value.trim();
   const password = document.getElementById("login-password").value;
   const err = document.getElementById("login-error");
@@ -200,7 +201,7 @@ function handleAuth() {
       err.textContent = "Contrasenya massa curta (mínim 4 caràcters)";
       return;
     }
-    users[username] = { password };
+    users[username] = { password: await hashPassword(password) };
     saveUsers(users);
     setSession(username);
     currentUser = username;
@@ -210,9 +211,15 @@ function handleAuth() {
       err.textContent = "Usuari no trobat";
       return;
     }
-    if (users[username].password !== password) {
+    const ok = await verifyPassword(password, users[username].password);
+    if (!ok) {
       err.textContent = "Contrasenya incorrecta";
       return;
+    }
+    // Migra comptes antics (text pla → SHA-256)
+    if (!users[username].password.startsWith("sha256:")) {
+      users[username].password = await hashPassword(password);
+      saveUsers(users);
     }
     setSession(username);
     currentUser = username;
@@ -234,18 +241,30 @@ function startGame() {
   activeDataset = selectedDataset;
   document.getElementById("dataset-select").value = activeDataset;
   showScreen("screen-game");
-  setTimeout(() => {
+
+  const gameScreen = document.getElementById("screen-game");
+  let initialized = false;
+  const init = () => {
+    if (initialized) return;
+    initialized = true;
+    gameScreen.removeEventListener("transitionend", onTransition);
     initMap();
     loadDataset(activeDataset);
     updateModeLabels();
     updateFiltersUI();
-  }, 100);
+  };
+  const onTransition = (e) => {
+    if (e.target === gameScreen && e.propertyName === "opacity") init();
+  };
+  gameScreen.addEventListener("transitionend", onTransition);
+  setTimeout(init, 500); // fallback per si transitionend no s'activa
 }
 
 function goHome() {
-  if (scoreCorrect + scoreWrong > 0) {
+  if (!scoreSaved && scoreCorrect + scoreWrong > 0) {
     saveScore(currentUser, scoreCorrect, scoreCorrect + scoreWrong);
   }
+  scoreSaved = false;
   document.getElementById("modal-gameover").classList.remove("show");
   scoreCorrect = 0;
   scoreWrong = 0;
@@ -342,9 +361,14 @@ function newQuestion() {
   }
 
   if (gameMode === "MUNICIPI") {
-    updateMunicipisByProvincia();
-    updateProvinciaFilterOnMap();
-    const municipi = randomFrom(Object.keys(municipis));
+    const availableMunicipis = Object.keys(municipis).filter(
+      (m) => !completedAnswers.has(municipis[m])
+    );
+    if (availableMunicipis.length === 0) {
+      showGameOver();
+      return;
+    }
+    const municipi = randomFrom(availableMunicipis);
     currentAnswer = municipis[municipi];
     document.getElementById("question").textContent =
       "📍 On és el municipi: " + municipi;
@@ -375,6 +399,7 @@ function loadDataset(dataset) {
   completedAnswers.clear();
   scoreCorrect = 0;
   scoreWrong = 0;
+  scoreSaved = false;
   updateScore();
   document.getElementById("feedback").textContent = "";
   document.getElementById("question").textContent = "Carregant…";
@@ -400,39 +425,57 @@ function loadDataset(dataset) {
   Promise.all([
     fetch(config.geo).then((r) => r.json()),
     fetch(config.capitals).then((r) => r.json()),
-  ]).then(([geoData, capsData]) => {
-    capitals = capsData;
-    pendingAnswers = geoData.features.map(config.name);
-    geojsonLayer = L.geoJSON(geoData, {
-      style: styleFeature,
-      onEachFeature,
-    }).addTo(map);
-    map.fitBounds(geojsonLayer.getBounds());
-    newQuestion();
-  });
+  ])
+    .then(([geoData, capsData]) => {
+      capitals = capsData;
+      pendingAnswers = geoData.features.map(config.name);
+      geojsonLayer = L.geoJSON(geoData, {
+        style: styleFeature,
+        onEachFeature,
+      }).addTo(map);
+      map.fitBounds(geojsonLayer.getBounds());
+      newQuestion();
+    })
+    .catch(() => {
+      document.getElementById("question").textContent =
+        "Error carregant les dades. Refresca la pàgina.";
+    });
 }
 
-// Càrrega municipis en paral·lel
-Promise.all([
-  fetch("data/catalunya/municipis_girona.json")
-    .then((r) => r.json())
-    .catch(() => ({})),
-  fetch("data/catalunya/municipis_barcelona.json")
-    .then((r) => r.json())
-    .catch(() => ({})),
-  fetch("data/catalunya/municipis_lleida.json")
-    .then((r) => r.json())
-    .catch(() => ({})),
-  fetch("data/catalunya/municipis_tarragona.json")
-    .then((r) => r.json())
-    .catch(() => ({})),
-]).then(([g, b, l, t]) => {
-  municipisByProvincia.Girona = g;
-  municipisByProvincia.Barcelona = b;
-  municipisByProvincia.Lleida = l;
-  municipisByProvincia.Tarragona = t;
-  municipis = { ...g, ...b, ...l, ...t };
-});
+// =====================
+// CÀRREGA LAZY DE MUNICIPIS
+// =====================
+let municipisLoaded = false;
+let municipisLoadPromise = null;
+
+function loadMunicipis() {
+  if (municipisLoaded) return Promise.resolve();
+  if (municipisLoadPromise) return municipisLoadPromise;
+
+  municipisLoadPromise = Promise.all([
+    fetch("data/catalunya/municipis_girona.json")
+      .then((r) => r.json())
+      .catch(() => ({})),
+    fetch("data/catalunya/municipis_barcelona.json")
+      .then((r) => r.json())
+      .catch(() => ({})),
+    fetch("data/catalunya/municipis_lleida.json")
+      .then((r) => r.json())
+      .catch(() => ({})),
+    fetch("data/catalunya/municipis_tarragona.json")
+      .then((r) => r.json())
+      .catch(() => ({})),
+  ]).then(([g, b, l, t]) => {
+    municipisByProvincia.Girona = g;
+    municipisByProvincia.Barcelona = b;
+    municipisByProvincia.Lleida = l;
+    municipisByProvincia.Tarragona = t;
+    municipis = { ...g, ...b, ...l, ...t };
+    municipisLoaded = true;
+  });
+
+  return municipisLoadPromise;
+}
 
 // =====================
 // CONTROLS JOC
@@ -456,7 +499,17 @@ function setMode(mode) {
   document.getElementById("vegueria-select").value = "";
   document.getElementById("provincia-select").value = "";
   updateFiltersUI();
-  newQuestion();
+
+  if (mode === "MUNICIPI") {
+    document.getElementById("question").textContent = "Carregant…";
+    loadMunicipis().then(() => {
+      updateMunicipisByProvincia();
+      updateProvinciaFilterOnMap();
+      newQuestion();
+    });
+  } else {
+    newQuestion();
+  }
 }
 
 function changeDataset() {
@@ -481,13 +534,37 @@ function changeVegueria() {
 
 function changeProvincia() {
   activeProvincia = document.getElementById("provincia-select").value;
+  updateMunicipisByProvincia();
+  updateProvinciaFilterOnMap();
   newQuestion();
+}
+
+// =====================
+// INICIALITZACIÓ SELECTS
+// =====================
+function initSelects() {
+  const vegueriaSelect = document.getElementById("vegueria-select");
+  Object.keys(vegueries).forEach((v) => {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    vegueriaSelect.appendChild(opt);
+  });
+
+  const provinciaSelect = document.getElementById("provincia-select");
+  Object.keys(municipisByProvincia).forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    provinciaSelect.appendChild(opt);
+  });
 }
 
 // =====================
 // INIT
 // =====================
 window.addEventListener("DOMContentLoaded", () => {
+  initSelects();
   const session = getSession();
   if (session && getUsers()[session]) {
     currentUser = session;

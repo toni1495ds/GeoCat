@@ -20,6 +20,20 @@ function saveScore(username, correct, total) {
 }
 
 // =====================
+// PASSWORD HASHING
+// =====================
+async function hashPassword(password) {
+    const data = new TextEncoder().encode(password);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return 'sha256:' + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyPassword(password, stored) {
+    if (stored.startsWith('sha256:')) return stored === await hashPassword(password);
+    return stored === password; // text pla (comptes antics — es migraran al login)
+}
+
+// =====================
 // NAVEGACIÓ
 // =====================
 function showScreen(id) {
@@ -43,6 +57,12 @@ function logout() {
 // =====================
 // LEADERBOARD
 // =====================
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 function stringToColor(str) {
     const colors = ['#D62828', '#1976d2', '#2ecc71', '#e67e22', '#9b59b6', '#e91e63', '#00bcd4'];
     let h = 0;
@@ -70,12 +90,14 @@ function showLeaderboard() {
         const medals = ['🥇', '🥈', '🥉'];
         sorted.forEach((entry, i) => {
             const isMe = entry.u === currentUser;
+            const safeUser = escapeHtml(entry.u);
+            const safeInitial = escapeHtml(entry.u[0].toUpperCase());
             const row = document.createElement('div');
             row.className = 'lb-row' + (isMe ? ' me' : '');
             row.innerHTML = `
                 <div class="lb-rank">${medals[i] || i + 1}</div>
-                <div class="lb-avatar" style="background:${stringToColor(entry.u)}">${entry.u[0].toUpperCase()}</div>
-                <div class="lb-name">${entry.u}${isMe ? ' <span style="color:var(--gold);font-size:11px;margin-left:4px;">TU</span>' : ''}</div>
+                <div class="lb-avatar" style="background:${stringToColor(entry.u)}">${safeInitial}</div>
+                <div class="lb-name">${safeUser}${isMe ? ' <span style="color:var(--gold);font-size:11px;margin-left:4px;">TU</span>' : ''}</div>
                 <div class="lb-stats">
                     <div class="lb-stat">
                         <div class="lb-stat-val">${entry.correct}</div>
@@ -203,5 +225,6 @@ function showGameOver() {
     else { emoji.textContent = '💪'; title.textContent = 'Segueix practicant!'; }
 
     saveScore(currentUser, scoreCorrect, total);
+    scoreSaved = true;
     document.getElementById('modal-gameover').classList.add('show');
 }

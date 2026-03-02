@@ -17,6 +17,7 @@
     --text: #f0f0f0;
     --text-muted: #888;
     --green: #2ecc71;
+    --red-hover: var(--red-hover);
 }
 
 html,
@@ -126,7 +127,7 @@ body {
 }
 
 .btn-primary:hover {
-    background: #b02020;
+    background: var(--red-hover);
 }
 
 .btn-primary:active {
@@ -310,7 +311,7 @@ body {
 }
 
 .btn-start:hover {
-    background: #b02020;
+    background: var(--red-hover);
 }
 
 .btn-start:active {
@@ -737,7 +738,7 @@ body {
 }
 
 .btn-modal-primary:hover {
-    background: #b02020;
+    background: var(--red-hover);
 }
 
 .btn-modal-secondary {
