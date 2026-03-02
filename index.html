@@ -1,145 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ca">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GeoCat – Pràctica Bombers</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,900;1,700&family=Barlow:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
     <link rel="stylesheet" href="style.css" />
-</head>
+  </head>
+  <body>
+    <!-- ══════════════════════════════════════
+     FIRE BG LAYER (shared login + home)
+══════════════════════════════════════ -->
+    <div class="fire-bg" id="fire-bg">
+      <div class="fire-radials"></div>
+      <div class="embers-layer" id="embers-layer"></div>
+      <div class="flames-layer" id="flames-layer"></div>
+      <div class="ground-glow"></div>
+      <div class="vignette"></div>
+      <div class="scanlines"></div>
+      <div class="grain"></div>
+    </div>
 
-<body>
-
-    <!-- LOGIN -->
+    <!-- ══════════════════════════════════════
+     LOGIN
+══════════════════════════════════════ -->
     <div class="screen" id="screen-login">
-        <div class="login-box">
-            <div>
-                <div class="logo-mark">GEO<br>CAT</div>
-                <div class="logo-sub">Pràctica Bombers</div>
-            </div>
-            <div class="login-form">
-                <div id="login-error" class="login-error"></div>
-                <input class="form-input" id="login-username" type="text" placeholder="Nom d'usuari"
-                    autocomplete="off" />
-                <input class="form-input" id="login-password" type="password" placeholder="Contrasenya" />
-                <button class="btn-primary" id="btn-login-submit">Entrar</button>
-            </div>
-            <div class="login-toggle">
-                <span id="login-toggle-text">No tens compte? </span><span id="login-toggle-link">Registra't</span>
-            </div>
+      <div class="login-wrap">
+        <div class="login-logo">
+          <div class="ll-geo">GEO</div>
+          <div class="ll-cat">CAT</div>
+          <div class="ll-sub">Pràctica Bombers</div>
         </div>
+
+        <div class="login-headline">
+          <h1>Oposició <em>Bombers</em> Catalunya</h1>
+          <p>Entrena. Aprèn. Salva vides.</p>
+        </div>
+
+        <div class="login-card">
+          <div class="card-top-bar"></div>
+          <div id="login-error" class="login-error"></div>
+          <div class="login-fields">
+            <input
+              class="form-input"
+              id="login-username"
+              type="text"
+              placeholder="Nom d'usuari"
+              autocomplete="off"
+            />
+            <input
+              class="form-input"
+              id="login-password"
+              type="password"
+              placeholder="Contrasenya"
+            />
+          </div>
+          <button class="btn-fire" id="btn-login-submit">Entrar</button>
+          <div class="login-toggle">
+            <span id="login-toggle-text">No tens compte? </span
+            ><span id="login-toggle-link">Registra't</span>
+          </div>
+        </div>
+
+        <div class="login-footer-tag">
+          <span></span>Cos de Bombers de la Generalitat de Catalunya<span
+          ></span>
+        </div>
+      </div>
     </div>
 
-    <!-- HOME -->
+    <!-- ══════════════════════════════════════
+     HOME
+══════════════════════════════════════ -->
     <div class="screen hidden" id="screen-home">
-        <div class="home-header">
-            <div class="home-logo">GEOCAT</div>
-            <div class="home-user">
-                <span id="home-username-text"></span>
-                <div class="avatar" id="home-avatar"></div>
-                <button onclick="logout()" class="btn-logout">Sortir</button>
+      <div class="home-wrap">
+        <!-- top nav -->
+        <nav class="home-nav">
+          <div class="nav-logo">GEO<span>CAT</span></div>
+          <div class="nav-right">
+            <div class="nav-user">
+              <div class="nav-avatar" id="home-avatar"></div>
+              <span id="home-username-text"></span>
             </div>
-        </div>
+            <button onclick="logout()" class="btn-nav-logout">Sortir →</button>
+          </div>
+        </nav>
+
+        <!-- hero -->
         <div class="home-hero">
-            <h1 class="home-title">Aprèn <span>Catalunya</span><br>fent-ho bé.</h1>
-            <p class="home-subtitle">Selecciona un mapa i practica comarques, capitals i municipis. Guanya punts i puja
-                al rànquing.</p>
+          <div class="hero-label">🔥 Mode entrenament actiu</div>
+          <h1 class="hero-title">
+            Aprèn <em>Catalunya</em><br />com un bomber.
+          </h1>
+          <p class="hero-sub">
+            Domina comarques, capitals i municipis. Cada resposta t'acosta a
+            l'oposició.
+          </p>
         </div>
-        <div class="home-grid">
-            <div class="mode-card selected" data-dataset="catalunya" onclick="selectDataset('catalunya')">
-                <div class="card-icon">🏔️</div>
-                <div class="card-title">Catalunya</div>
-                <div class="card-desc">Comarques, capitals i municipis</div>
+
+        <!-- map cards -->
+        <div class="home-cards">
+          <div
+            class="map-card selected"
+            data-dataset="catalunya"
+            onclick="selectDataset('catalunya')"
+          >
+            <div class="map-card-flag">🏔️</div>
+            <div class="map-card-info">
+              <div class="map-card-title">Catalunya</div>
+              <div class="map-card-desc">
+                42 comarques · 7 vegueries · 947 municipis
+              </div>
             </div>
-            <div class="mode-card" data-dataset="usa" onclick="selectDataset('usa')">
-                <div class="card-icon">🦅</div>
-                <div class="card-title">USA</div>
-                <div class="card-desc">Estats i capitals americanes</div>
+            <div class="map-card-check">✓</div>
+          </div>
+          <div
+            class="map-card"
+            data-dataset="usa"
+            onclick="selectDataset('usa')"
+          >
+            <div class="map-card-flag">🦅</div>
+            <div class="map-card-info">
+              <div class="map-card-title">USA</div>
+              <div class="map-card-desc">50 estats · capitals americanes</div>
             </div>
+            <div class="map-card-check">✓</div>
+          </div>
         </div>
+
+        <!-- actions -->
         <div class="home-actions">
-            <button class="btn-start" onclick="startGame()">▶ Comença</button>
-            <button class="btn-leaderboard" onclick="showLeaderboard()">🏆 Rànquing</button>
+          <button class="btn-fire btn-fire--full" onclick="startGame()">
+            ▶ Comença ara
+          </button>
+          <button class="btn-outline" onclick="showLeaderboard()">
+            🏆 Rànquing
+          </button>
         </div>
+
+        <!-- stats strip -->
+        <div class="home-stats">
+          <div class="hstat">
+            <span class="hstat-num" id="stat-correct">—</span
+            ><span class="hstat-label">Correctes totals</span>
+          </div>
+          <div class="hstat-div"></div>
+          <div class="hstat">
+            <span class="hstat-num" id="stat-accuracy">—</span
+            ><span class="hstat-label">Precisió</span>
+          </div>
+          <div class="hstat-div"></div>
+          <div class="hstat">
+            <span class="hstat-num" id="stat-games">—</span
+            ><span class="hstat-label">Respostes donades</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- GAME -->
+    <!-- ══════════════════════════════════════
+     GAME
+══════════════════════════════════════ -->
     <div class="screen hidden" id="screen-game">
-        <div id="game-topbar">
-            <div class="topbar-left">
-                <button id="btn-back" onclick="goHome()">←</button>
-                <div class="game-logo">GEOCAT</div>
-            </div>
-            <div class="topbar-controls">
-                <select id="dataset-select" class="topbar-select" onchange="changeDataset()">
-                    <option value="catalunya">Catalunya</option>
-                    <option value="usa">USA</option>
-                </select>
-                <button class="btn-mode" id="mode-comarca" onclick="setMode('COMARCA')">Comarques</button>
-                <button class="btn-mode active" id="mode-capital" onclick="setMode('CAPITAL')">Capitals</button>
-                <button class="btn-mode" id="mode-municipi" onclick="setMode('MUNICIPI')">Municipis</button>
-                <select id="vegueria-select" class="topbar-select" onchange="changeVegueria()" style="display:none;">
-                    <option value="">Totes les vegueries</option>
-                </select>
-                <select id="provincia-select" class="topbar-select" onchange="changeProvincia()" style="display:none;">
-                    <option value="">Totes les províncies</option>
-                </select>
-            </div>
+      <div id="game-topbar">
+        <div class="topbar-left">
+          <button id="btn-back" onclick="goHome()">←</button>
+          <div class="game-logo">GEO<span>CAT</span></div>
         </div>
-        <div id="game-question-bar">
-            <p id="question">Carregant…</p>
-            <div id="status-bar">
-                <span id="feedback"></span>
-                <div id="score">
-                    <span class="score correct">✓ <span id="score-correct">0</span></span>
-                    <span class="score wrong">✗ <span id="score-wrong">0</span></span>
-                </div>
-            </div>
+        <div class="topbar-controls">
+          <select
+            id="dataset-select"
+            class="topbar-select"
+            onchange="changeDataset()"
+          >
+            <option value="catalunya">Catalunya</option>
+            <option value="usa">USA</option>
+          </select>
+          <button
+            class="btn-mode"
+            id="mode-comarca"
+            onclick="setMode('COMARCA')"
+          >
+            Comarques
+          </button>
+          <button
+            class="btn-mode active"
+            id="mode-capital"
+            onclick="setMode('CAPITAL')"
+          >
+            Capitals
+          </button>
+          <button
+            class="btn-mode"
+            id="mode-municipi"
+            onclick="setMode('MUNICIPI')"
+          >
+            Municipis
+          </button>
+          <select
+            id="vegueria-select"
+            class="topbar-select"
+            onchange="changeVegueria()"
+            style="display: none"
+          >
+            <option value="">Totes les vegueries</option>
+          </select>
+          <select
+            id="provincia-select"
+            class="topbar-select"
+            onchange="changeProvincia()"
+            style="display: none"
+          >
+            <option value="">Totes les províncies</option>
+          </select>
         </div>
-        <div id="map"></div>
+      </div>
+      <div id="game-question-bar">
+        <p id="question">Carregant…</p>
+        <div id="status-bar">
+          <span id="feedback"></span>
+          <div id="score">
+            <span class="score correct"
+              >✓ <span id="score-correct">0</span></span
+            >
+            <span class="score wrong">✗ <span id="score-wrong">0</span></span>
+          </div>
+        </div>
+      </div>
+      <div id="map"></div>
     </div>
 
-    <!-- LEADERBOARD -->
+    <!-- ══════════════════════════════════════
+     LEADERBOARD
+══════════════════════════════════════ -->
     <div class="screen hidden" id="screen-leaderboard">
-        <div class="lb-header">
-            <div class="lb-title">🏆 Rànquing</div>
-            <button id="btn-lb-back" onclick="goHome()">←</button>
-        </div>
-        <div class="lb-list" id="lb-list"></div>
+      <div class="lb-header">
+        <div class="lb-title">🏆 Rànquing</div>
+        <button id="btn-lb-back" onclick="goHome()">← Tornar</button>
+      </div>
+      <div class="lb-list" id="lb-list"></div>
     </div>
 
-    <!-- MODAL FI DE PARTIDA -->
+    <!-- ══════════════════════════════════════
+     MODAL FI DE PARTIDA
+══════════════════════════════════════ -->
     <div id="modal-gameover">
-        <div class="modal-box">
-            <div class="modal-emoji" id="modal-emoji">🎉</div>
-            <div class="modal-title" id="modal-title">Completat!</div>
-            <div class="modal-stats">
-                <div class="modal-stat">
-                    <div class="modal-stat-val" id="modal-correct">0</div>
-                    <div class="modal-stat-label">Correctes</div>
-                </div>
-                <div class="modal-stat">
-                    <div class="modal-stat-val" id="modal-wrong" style="color:var(--red)">0</div>
-                    <div class="modal-stat-label">Errors</div>
-                </div>
+      <div class="modal-box">
+        <div class="modal-emoji" id="modal-emoji">🎉</div>
+        <div class="modal-title" id="modal-title">Completat!</div>
+        <div class="modal-stats">
+          <div class="modal-stat">
+            <div class="modal-stat-val" id="modal-correct">0</div>
+            <div class="modal-stat-label">Correctes</div>
+          </div>
+          <div class="modal-stat">
+            <div
+              class="modal-stat-val"
+              id="modal-wrong"
+              style="color: var(--red)"
+            >
+              0
             </div>
-            <div class="modal-accuracy" id="modal-accuracy"></div>
-            <div class="modal-actions">
-                <button class="btn-modal-primary" onclick="restartGame()">▶ Tornar a jugar</button>
-                <button class="btn-modal-secondary" onclick="goHome()">Menú principal</button>
-                <button class="btn-modal-secondary" onclick="showLeaderboard()">🏆 Veure rànquing</button>
-            </div>
+            <div class="modal-stat-label">Errors</div>
+          </div>
         </div>
+        <div class="modal-accuracy" id="modal-accuracy"></div>
+        <div class="modal-actions">
+          <button class="btn-fire btn-fire--full" onclick="restartGame()">
+            ▶ Tornar a jugar
+          </button>
+          <button class="btn-modal-secondary" onclick="goHome()">
+            Menú principal
+          </button>
+          <button class="btn-modal-secondary" onclick="showLeaderboard()">
+            🏆 Veure rànquing
+          </button>
+        </div>
+      </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="utils.js?v=2.0"></script>
-    <script src="app.js?v=2.0"></script>
-</body>
+    <script src="utils.js?v=3.0"></script>
+    <script src="app.js?v=3.0"></script>
+    <script>
+      // ── FIRE EFFECTS ──
+      (function initFire() {
+        // EMBERS
+        const ec = document.getElementById("embers-layer");
+        for (let i = 0; i < 65; i++) {
+          const e = document.createElement("div");
+          e.className = "ember";
+          const sz = Math.random() * 3.5 + 1.2;
+          const left = Math.random() * 100;
+          const dur = (Math.random() * 5 + 4).toFixed(1);
+          const delay = (Math.random() * 7).toFixed(1);
+          const drift = (Math.random() * 140 - 70).toFixed(0) + "px";
+          const hue = Math.random();
+          const col =
+            hue > 0.55
+              ? "rgba(255,176,32,.9)"
+              : hue > 0.3
+                ? "rgba(255,107,26,.85)"
+                : "rgba(229,34,34,.8)";
+          e.style.cssText = `width:${sz}px;height:${sz}px;left:${left}%;--dur:${dur}s;--delay:-${delay}s;--drift:${drift}px;background:${col};box-shadow:0 0 ${sz * 2}px ${col};`;
+          ec.appendChild(e);
+        }
 
+        // FLAMES
+        const fc = document.getElementById("flames-layer");
+        const COLS = 20;
+        for (let i = 0; i < COLS; i++) {
+          const col = document.createElement("div");
+          col.className = "flame-col";
+          const bw = Math.random() * 55 + 38;
+          const bh = Math.random() * 70 + 75;
+          [
+            {
+              wm: 1,
+              hm: 1,
+              c1: "#ff6b1a",
+              c2: "#b91515",
+              blur: "9px",
+              op: 0.88,
+            },
+            {
+              wm: 0.62,
+              hm: 1.18,
+              c1: "#ffb020",
+              c2: "#ff5500",
+              blur: "4px",
+              op: 0.72,
+            },
+            {
+              wm: 0.32,
+              hm: 1.35,
+              c1: "#fff5a0",
+              c2: "#ffb020",
+              blur: "2px",
+              op: 0.65,
+            },
+          ].forEach((l) => {
+            const f = document.createElement("div");
+            f.className = "flame";
+            const fd = (Math.random() * 0.55 + 0.45).toFixed(2) + "s";
+            const ff = (Math.random() * 0.35).toFixed(2) + "s";
+            f.style.cssText = `width:${bw * l.wm}px;height:${bh * l.hm}px;background:linear-gradient(to top,${l.c1},${l.c2},transparent);--fd:${fd};--ff:${ff};--fb:${l.blur};opacity:${l.op};`;
+            col.appendChild(f);
+          });
+          fc.appendChild(col);
+        }
+      })();
+    </script>
+  </body>
 </html>
