@@ -73,5 +73,18 @@ Actualment els usuaris i puntuacions es guarden al **localStorage** del navegado
 - El leaderboard **no és compartit** entre usuaris reals
 
 ---
+## 🧪 Testing
+
+El projecte inclou tests E2E amb **Playwright**.
+
+### ▶️ Executar tests en local
+
+```bash
+npm install
+npx playwright test
+```
+
+Els tests també s'executen automàticament a cada push mitjançant GitHub Actions.
+---
 
 TO BE CONTINUED
