@@ -57,20 +57,6 @@ L'app necessita un servidor local per carregar els fitxers JSON i GeoJSON.
 1. Instal·la l'extensió **Live Server** a VS Code
 2. Clic dret sobre `index.html` → "Open with Live Server"
 
-### Opció 2 – Python
-```bash
-# Python 3
-python3 -m http.server 8000
-# Obre http://localhost:8000
-```
-
-### Opció 3 – Node.js
-```bash
-npx serve .
-```
-
----
-
 ## 👤 Sistema d'usuaris (versió actual)
 
 Actualment els usuaris i puntuacions es guarden al **localStorage** del navegador.
