@@ -6,25 +6,35 @@ App de pràctica de geografia interactiva per preparar oposicions de Bombers de 
 
 ## 📁 Estructura del projecte
 
+## 📁 Estructura del projecte
+
 ```
 GeoCat/
 ├── index.html
 ├── style.css
 ├── app.js
 ├── utils.js
-└── data/
-    ├── catalunya/
-    │   ├── comarques.geojson
-    │   ├── capitals.json
-    │   ├── municipis_barcelona.json
-    │   ├── municipis_girona.json
-    │   ├── municipis_lleida.json
-    │   └── municipis_tarragona.json
-    └── usa/
-        ├── states.json
-        └── capitals.json
+├── data/
+│   ├── catalunya/
+│   │   ├── comarques.geojson
+│   │   ├── capitals.json
+│   │   ├── municipis_barcelona.json
+│   │   ├── municipis_girona.json
+│   │   ├── municipis_lleida.json
+│   │   └── municipis_tarragona.json
+│   └── usa/
+│       ├── states.json
+│       └── capitals.json
+├── tests/
+│   └── app.spec.ts
+├── playwright.config.ts
+├── package.json
+├── package-lock.json
+├── .gitignore
+└── .github/
+    └── workflows/
+        └── playwright.yml
 ```
-
 ---
 
 ## 🎮 Modes de joc
