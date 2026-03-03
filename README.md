@@ -6,8 +6,6 @@ App de pràctica de geografia interactiva per preparar oposicions de Bombers de 
 
 ## 📁 Estructura del projecte
 
-## 📁 Estructura del projecte
-
 ```
 GeoCat/
 ├── index.html
