@@ -129,6 +129,7 @@ function stringToColor(str) {
 }
 
 function showLeaderboard() {
+  document.getElementById("modal-gameover").classList.remove("show");
   const scores = getScores();
   const list = document.getElementById("lb-list");
   list.innerHTML = "";
@@ -255,12 +256,15 @@ function updateModeLabels() {
     : "Comarques";
   document.getElementById("mode-capital").textContent = "Capitals";
   document.getElementById("mode-municipi").style.display = isUSA ? "none" : "";
+  document.getElementById("mode-riu").style.display = isUSA ? "none" : "";
+  document.getElementById("mode-serralada").style.display = isUSA ? "none" : "";
+  document.getElementById("mode-carretera").style.display = isUSA ? "none" : "";
 }
 
 function updateFiltersUI() {
   const vegueriaEl = document.getElementById("vegueria-select");
   const provinciaEl = document.getElementById("provincia-select");
-  if (activeDataset === "usa") {
+  if (activeDataset === "usa" || ["RIU", "SERRALADA", "CARRETERA"].includes(gameMode)) {
     vegueriaEl.style.display = "none";
     provinciaEl.style.display = "none";
     return;

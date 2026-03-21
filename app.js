@@ -5,6 +5,14 @@ let currentUser = null;
 let selectedDataset = "catalunya";
 let map = null;
 let geojsonLayer = null;
+let extraLayer = null;
+let pendingTimers = [];
+
+function scheduleTimer(fn, delay) {
+  const id = setTimeout(fn, delay);
+  pendingTimers.push(id);
+  return id;
+}
 let capitals = {};
 let municipisByProvincia = {
   Girona: {},
@@ -274,7 +282,12 @@ function initMap() {
   if (map) return;
   map = L.map("map").setView([41.7, 1.8], 7);
 }
+const EXTRA_MODES = ["RIU", "SERRALADA", "CARRETERA"];
+
 function styleFeature(feature) {
+  if (EXTRA_MODES.includes(gameMode)) {
+    return { fillColor: "#555", fillOpacity: 0.08, color: "#444", weight: 0.5 };
+  }
   const name = feature.properties.nom_comar || feature.properties.name;
   if (completedAnswers.has(name)) {
     return {
@@ -299,8 +312,101 @@ function styleFeature(feature) {
     weight: 1,
   };
 }
+
+const serraladaColors = {
+  "Pirineus Axials":      "#7ba7bc",
+  "Prepirineus":          "#8fb5c5",
+  "Serralada Transversal":"#7a9e6b",
+  "Serralada Prelitoral": "#8b7355",
+  "Serralada Litoral":    "#9e8e6e",
+  "Montseny":             "#6b8f5e",
+  "Montserrat":           "#b0956a",
+  "Montsant":             "#a07850",
+  "Serra de Prades":      "#8b6545",
+  "Ports de Tortosa-Beseit": "#7a6055",
+  "Massís del Garraf":    "#8a8a75",
+};
+
+function styleExtra(feature) {
+  const nom = feature.properties.nom;
+  const isDone = completedAnswers.has(nom);
+  if (gameMode === "RIU") {
+    return isDone
+      ? { color: "#2ecc71", weight: 5, opacity: 0.95 }
+      : { color: "#4fc3f7", weight: 3, opacity: 0.75 };
+  }
+  if (gameMode === "CARRETERA") {
+    return isDone
+      ? { color: "#2ecc71", weight: 5, opacity: 0.95 }
+      : { color: "#FFB020", weight: 3.5, opacity: 0.8 };
+  }
+  // SERRALADA
+  const col = serraladaColors[nom] || "#8b7355";
+  return isDone
+    ? { fillColor: "#2ecc71", fillOpacity: 0.65, color: "#1a7a43", weight: 2 }
+    : { fillColor: col, fillOpacity: 0.42, color: col, weight: 1.5 };
+}
+
+function onEachExtraFeature(feature, layer) {
+  const isLine = gameMode === "RIU" || gameMode === "CARRETERA";
+  const nom = feature.properties.nom;
+  layer.on("click", () => {
+    if (completedAnswers.has(nom)) return;
+    if (nom === currentAnswer) {
+      completedAnswers.add(nom);
+      pendingAnswers = pendingAnswers.filter((n) => n !== nom);
+      scoreCorrect++;
+      updateScore();
+      if (extraLayer) extraLayer.setStyle(styleExtra);
+      showFeedback(true);
+      if (pendingAnswers.length === 0) {
+        scheduleTimer(showGameOver, 700);
+      } else {
+        scheduleTimer(newQuestion, 900);
+      }
+    } else {
+      scoreWrong++;
+      updateScore();
+      if (isLine) {
+        layer.setStyle({ color: "#D62828", weight: 7, opacity: 1 });
+      } else {
+        layer.setStyle({ fillColor: "#D62828", fillOpacity: 0.7, color: "#ff4444", weight: 2.5 });
+      }
+      showFeedback(false);
+      scheduleTimer(() => {
+        if (extraLayer) extraLayer.setStyle(styleExtra);
+      }, 700);
+    }
+  });
+  layer.on("mouseover", function () {
+    if (isLine) {
+      this.setStyle({ weight: 6, opacity: 1 });
+    } else {
+      this.setStyle({ fillOpacity: 0.65, weight: 2.5 });
+    }
+  });
+  layer.on("mouseout", function () {
+    if (extraLayer) extraLayer.setStyle(styleExtra);
+  });
+}
+
+function addExtraLayer(data) {
+  extraLayer = L.geoJSON(data, {
+    style: styleExtra,
+    onEachFeature: onEachExtraFeature,
+  }).addTo(map);
+}
+
+function extraModeUrl(mode) {
+  return {
+    RIU: "data/catalunya/rius.geojson",
+    SERRALADA: "data/catalunya/serralades.geojson",
+    CARRETERA: "data/catalunya/carreteres.geojson",
+  }[mode];
+}
 function onEachFeature(feature, layer) {
   layer.on("click", () => {
+    if (EXTRA_MODES.includes(gameMode)) return;
     const name = feature.properties.nom_comar || feature.properties.name;
     if (completedAnswers.has(name)) return;
     if (name === currentAnswer) {
@@ -311,26 +417,28 @@ function onEachFeature(feature, layer) {
       geojsonLayer.setStyle(styleFeature);
       showFeedback(true);
       if (pendingAnswers.length === 0) {
-        setTimeout(showGameOver, 700);
+        scheduleTimer(showGameOver, 700);
       } else {
-        setTimeout(newQuestion, 900);
+        scheduleTimer(newQuestion, 900);
       }
     } else {
       scoreWrong++;
       updateScore();
       layer.setStyle({ fillColor: "#D62828", fillOpacity: 0.75 });
       showFeedback(false);
-      setTimeout(() => {
+      scheduleTimer(() => {
         if (geojsonLayer) geojsonLayer.setStyle(styleFeature);
       }, 700);
     }
   });
   layer.on("mouseover", function () {
+    if (EXTRA_MODES.includes(gameMode)) return;
     const name = feature.properties.nom_comar || feature.properties.name;
     if (!completedAnswers.has(name))
       this.setStyle({ weight: 2.5, fillOpacity: 0.8 });
   });
   layer.on("mouseout", function () {
+    if (EXTRA_MODES.includes(gameMode)) return;
     if (geojsonLayer) geojsonLayer.setStyle(styleFeature);
   });
 }
@@ -358,6 +466,27 @@ function newQuestion() {
       "📍 On és el municipi: " + municipi;
     return;
   }
+  if (gameMode === "RIU") {
+    currentAnswer = randomFrom(pendingAnswers);
+    document.getElementById("question").textContent =
+      "🌊 Clica el riu: " + currentAnswer;
+    if (extraLayer) extraLayer.setStyle(styleExtra);
+    return;
+  }
+  if (gameMode === "SERRALADA") {
+    currentAnswer = randomFrom(pendingAnswers);
+    document.getElementById("question").textContent =
+      "⛰️ Clica la serralada: " + currentAnswer;
+    if (extraLayer) extraLayer.setStyle(styleExtra);
+    return;
+  }
+  if (gameMode === "CARRETERA") {
+    currentAnswer = randomFrom(pendingAnswers);
+    document.getElementById("question").textContent =
+      "🛣️ Clica la carretera: " + currentAnswer;
+    if (extraLayer) extraLayer.setStyle(styleExtra);
+    return;
+  }
   const filtered = activeVegueria
     ? pendingAnswers.filter((n) => getVegueria(n) === activeVegueria)
     : pendingAnswers;
@@ -376,6 +505,8 @@ function newQuestion() {
 // CÀRREGA DE DADES
 // =====================
 function loadDataset(dataset) {
+  pendingTimers.forEach(clearTimeout);
+  pendingTimers = [];
   activeDataset = dataset;
   completedAnswers.clear();
   scoreCorrect = 0;
@@ -387,6 +518,10 @@ function loadDataset(dataset) {
   if (geojsonLayer) {
     map.removeLayer(geojsonLayer);
     geojsonLayer = null;
+  }
+  if (extraLayer) {
+    map.removeLayer(extraLayer);
+    extraLayer = null;
   }
   const config =
     dataset === "usa"
@@ -400,17 +535,28 @@ function loadDataset(dataset) {
           capitals: "data/catalunya/capitals.json",
           name: (f) => f.properties.nom_comar,
         };
-  Promise.all([
+  const isExtra =
+    EXTRA_MODES.includes(gameMode) && dataset === "catalunya";
+  const fetches = [
     fetch(config.geo).then((r) => r.json()),
     fetch(config.capitals).then((r) => r.json()),
-  ])
-    .then(([geoData, capsData]) => {
+    ...(isExtra
+      ? [fetch(extraModeUrl(gameMode)).then((r) => r.json())]
+      : []),
+  ];
+  Promise.all(fetches)
+    .then(([geoData, capsData, extraData]) => {
       capitals = capsData;
-      pendingAnswers = geoData.features.map(config.name);
       geojsonLayer = L.geoJSON(geoData, {
         style: styleFeature,
         onEachFeature,
       }).addTo(map);
+      if (isExtra && extraData) {
+        pendingAnswers = extraData.features.map((f) => f.properties.nom);
+        addExtraLayer(extraData);
+      } else {
+        pendingAnswers = geoData.features.map(config.name);
+      }
       map.fitBounds(geojsonLayer.getBounds());
       newQuestion();
     })
@@ -454,6 +600,7 @@ function loadMunicipis() {
 // CONTROLS JOC
 // =====================
 function setMode(mode) {
+  const prevMode = gameMode;
   gameMode = mode;
   document
     .querySelectorAll(".btn-mode")
@@ -464,6 +611,9 @@ function setMode(mode) {
         COMARCA: "mode-comarca",
         CAPITAL: "mode-capital",
         MUNICIPI: "mode-municipi",
+        RIU: "mode-riu",
+        SERRALADA: "mode-serralada",
+        CARRETERA: "mode-carretera",
       }[mode],
     )
     .classList.add("active");
@@ -472,7 +622,11 @@ function setMode(mode) {
   document.getElementById("vegueria-select").value = "";
   document.getElementById("provincia-select").value = "";
   updateFiltersUI();
-  if (mode === "MUNICIPI") {
+  const isExtra = EXTRA_MODES.includes(mode);
+  const wasExtra = EXTRA_MODES.includes(prevMode);
+  if (isExtra || wasExtra) {
+    loadDataset(activeDataset);
+  } else if (mode === "MUNICIPI") {
     document.getElementById("question").textContent = "Carregant…";
     loadMunicipis().then(() => {
       updateMunicipisByProvincia();

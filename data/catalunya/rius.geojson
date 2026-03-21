@@ -1,0 +1,249 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "nom": "Ebre" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0.25, 41.38], [0.38, 41.30], [0.52, 41.18],
+          [0.65, 41.10], [0.67, 40.88], [0.62, 40.72],
+          [0.72, 40.72], [0.88, 40.73]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Segre" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.45, 42.35], [1.25, 42.10], [1.00, 41.88],
+          [0.82, 41.72], [0.68, 41.62], [0.50, 41.50],
+          [0.28, 41.38]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Noguera Pallaresa" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.12, 42.72], [1.05, 42.52], [1.00, 42.30],
+          [0.97, 42.05], [0.95, 41.88]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Noguera Ribagorçana" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0.72, 42.68], [0.68, 42.45], [0.65, 42.20],
+          [0.62, 41.98], [0.58, 41.75], [0.52, 41.55],
+          [0.42, 41.45], [0.28, 41.38]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Garona" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.60, 42.78], [1.38, 42.77], [1.12, 42.75],
+          [0.90, 42.72], [0.80, 42.70], [0.73, 42.77], [0.72, 42.83]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Matarranya" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0.50, 40.73], [0.42, 40.87], [0.36, 41.00],
+          [0.28, 41.12], [0.23, 41.22]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Siurana" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0.92, 41.30], [0.87, 41.22], [0.80, 41.15],
+          [0.72, 41.10], [0.65, 41.07]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Sènia" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0.45, 40.72], [0.48, 40.67], [0.50, 40.62], [0.52, 40.57]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Muga" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.88, 42.50], [2.95, 42.40], [3.02, 42.32],
+          [3.12, 42.28], [3.20, 42.27]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Fluvià" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.50, 42.28], [2.65, 42.22], [2.80, 42.18],
+          [2.95, 42.12], [3.05, 42.12], [3.18, 42.18]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Ter" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.18, 42.30], [2.30, 42.18], [2.50, 42.00],
+          [2.68, 41.97], [2.85, 41.98], [3.05, 42.02],
+          [3.20, 42.05]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Daró" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.92, 41.92], [2.98, 41.95], [3.05, 41.97], [3.13, 41.98]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Ridaura" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.97, 41.87], [2.99, 41.85], [3.03, 41.83], [3.07, 41.82]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Tordera" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.50, 41.88], [2.55, 41.78], [2.62, 41.72],
+          [2.70, 41.68], [2.80, 41.68]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Congost" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.21, 41.92], [2.23, 41.80], [2.25, 41.72],
+          [2.27, 41.65], [2.22, 41.63]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Besòs" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [2.17, 41.78], [2.20, 41.68], [2.22, 41.58],
+          [2.23, 41.47], [2.23, 41.38]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Llobregat" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.88, 42.05], [1.88, 41.90], [1.87, 41.75],
+          [1.90, 41.62], [1.95, 41.52], [2.00, 41.42],
+          [2.05, 41.33], [2.07, 41.28]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Cardener" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.52, 41.98], [1.58, 41.85], [1.65, 41.72],
+          [1.78, 41.63], [1.88, 41.58], [1.93, 41.52]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Anoia" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.53, 41.73], [1.60, 41.65], [1.62, 41.58],
+          [1.70, 41.53], [1.82, 41.50], [1.90, 41.49]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Foix" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.68, 41.45], [1.67, 41.38], [1.67, 41.30],
+          [1.67, 41.22], [1.68, 41.20]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Gaià" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.25, 41.58], [1.18, 41.48], [1.20, 41.38],
+          [1.28, 41.28], [1.38, 41.20]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nom": "Francolí" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.27, 41.52], [1.22, 41.43], [1.20, 41.35],
+          [1.22, 41.25], [1.25, 41.12]
+        ]
+      }
+    }
+  ]
+}
