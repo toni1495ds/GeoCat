@@ -10,6 +10,7 @@ let extraHitboxLayer = null;
 let hoveredFeature = null;
 let pendingTimers = [];
 let riuComarques = {};
+let loadGeneration = 0;
 
 function scheduleTimer(fn, delay) {
   const id = setTimeout(fn, delay);
@@ -454,6 +455,7 @@ function newQuestion() {
   document.getElementById("feedback").textContent = "";
   document.getElementById("feedback").className = "";
   if (pendingAnswers.length === 0) {
+    if (scoreCorrect + scoreWrong === 0) return;
     showGameOver();
     return;
   }
@@ -539,8 +541,10 @@ function newQuestion() {
 // CÀRREGA DE DADES
 // =====================
 function loadDataset(dataset) {
+  const myGen = ++loadGeneration;
   pendingTimers.forEach(clearTimeout);
   pendingTimers = [];
+  pendingAnswers = [];
   activeDataset = dataset;
   completedAnswers.clear();
   scoreCorrect = 0;
@@ -585,6 +589,7 @@ function loadDataset(dataset) {
   ];
   Promise.all(fetches)
     .then(([geoData, capsData, extraData]) => {
+      if (myGen !== loadGeneration) return;
       capitals = capsData;
       geojsonLayer = L.geoJSON(geoData, {
         style: styleFeature,
@@ -688,6 +693,8 @@ function handleTestAnswer(clickedIdx, chosen, correct, options) {
 // CONTROLS JOC
 // =====================
 function setMode(mode) {
+  pendingTimers.forEach(clearTimeout);
+  pendingTimers = [];
   const prevMode = gameMode;
   gameMode = mode;
   document
@@ -734,8 +741,10 @@ function setMode(mode) {
     updateScore();
     document.getElementById("feedback").textContent = "";
     document.getElementById("feedback").className = "";
+    const myTestGen = loadGeneration;
     const startTest = () => {
       loadMunicipis().then(() => {
+        if (gameMode !== "TEST" || myTestGen !== loadGeneration) return;
         updateMunicipisByProvincia();
         newQuestion();
       });
@@ -752,7 +761,9 @@ function setMode(mode) {
     loadDataset(activeDataset);
   } else if (mode === "MUNICIPI") {
     document.getElementById("question").textContent = "Carregant…";
+    const myMunGen = loadGeneration;
     loadMunicipis().then(() => {
+      if (gameMode !== "MUNICIPI" || myMunGen !== loadGeneration) return;
       updateMunicipisByProvincia();
       updateProvinciaFilterOnMap();
       newQuestion();
