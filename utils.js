@@ -240,10 +240,14 @@ function updateScore() {
   document.getElementById("score-wrong").textContent = scoreWrong;
 }
 
-function showFeedback(ok) {
+function showFeedback(ok, hint) {
   const fb = document.getElementById("feedback");
-  fb.textContent = ok ? "✓ Correcte!" : "✗ Incorrecte!";
   fb.className = ok ? "correcte" : "incorrecte";
+  if (ok || !hint) {
+    fb.textContent = ok ? "✓ Correcte!" : "✗ Incorrecte!";
+  } else {
+    fb.innerHTML = "✗ Incorrecte! <span class='feedback-hint'>" + escapeHtml(hint) + "</span>";
+  }
 }
 
 // =====================

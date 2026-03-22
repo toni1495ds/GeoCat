@@ -3,7 +3,7 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "nom": "Ebre" },
+      "properties": { "nom": "Ebre", "comarques": ["Ribera d'Ebre", "Terra Alta", "Baix Ebre", "Montsià"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -15,7 +15,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Segre" },
+      "properties": { "nom": "Segre", "comarques": ["Cerdanya", "Alt Urgell", "Noguera", "Segrià"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -27,7 +27,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Noguera Pallaresa" },
+      "properties": { "nom": "Noguera Pallaresa", "comarques": ["Pallars Sobirà", "Pallars Jussà", "Noguera"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -38,7 +38,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Noguera Ribagorçana" },
+      "properties": { "nom": "Noguera Ribagorçana", "comarques": ["Alta Ribagorça", "Pallars Jussà", "Noguera"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -50,7 +50,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Garona" },
+      "properties": { "nom": "Garona", "comarques": ["Val d'Aran"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -61,7 +61,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Matarranya" },
+      "properties": { "nom": "Matarranya", "comarques": ["Terra Alta"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -72,7 +72,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Siurana" },
+      "properties": { "nom": "Siurana", "comarques": ["Priorat", "Ribera d'Ebre"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -83,7 +83,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Sènia" },
+      "properties": { "nom": "Sènia", "comarques": ["Montsià"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -93,7 +93,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Muga" },
+      "properties": { "nom": "Muga", "comarques": ["Alt Empordà"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -104,7 +104,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Fluvià" },
+      "properties": { "nom": "Fluvià", "comarques": ["Garrotxa", "Alt Empordà"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -115,7 +115,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Ter" },
+      "properties": { "nom": "Ter", "comarques": ["Ripollès", "Osona", "Gironès", "Selva", "Baix Empordà"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -127,7 +127,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Daró" },
+      "properties": { "nom": "Daró", "comarques": ["Baix Empordà"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -137,7 +137,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Ridaura" },
+      "properties": { "nom": "Ridaura", "comarques": ["Baix Empordà"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -147,7 +147,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Tordera" },
+      "properties": { "nom": "Tordera", "comarques": ["Vallès Oriental", "Selva", "Maresme"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -158,7 +158,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Congost" },
+      "properties": { "nom": "Congost", "comarques": ["Osona", "Vallès Oriental"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -169,7 +169,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Besòs" },
+      "properties": { "nom": "Besòs", "comarques": ["Vallès Oriental", "Vallès Occidental", "Barcelonès"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -180,7 +180,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Llobregat" },
+      "properties": { "nom": "Llobregat", "comarques": ["Berguedà", "Bages", "Anoia", "Baix Llobregat"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -192,7 +192,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Cardener" },
+      "properties": { "nom": "Cardener", "comarques": ["Solsonès", "Bages"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -203,7 +203,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Anoia" },
+      "properties": { "nom": "Anoia", "comarques": ["Anoia", "Baix Llobregat"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -214,7 +214,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Foix" },
+      "properties": { "nom": "Foix", "comarques": ["Alt Penedès", "Baix Penedès"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -225,7 +225,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Gaià" },
+      "properties": { "nom": "Gaià", "comarques": ["Conca de Barberà", "Alt Camp", "Tarragonès"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -236,7 +236,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "nom": "Francolí" },
+      "properties": { "nom": "Francolí", "comarques": ["Conca de Barberà", "Alt Camp", "Tarragonès"] },
       "geometry": {
         "type": "LineString",
         "coordinates": [

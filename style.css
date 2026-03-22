@@ -701,6 +701,7 @@ transition: opacity .2s;
   justify-content: space-between;
   gap: 12px;
   flex-shrink: 0;
+  position: relative;
 }
 #question {
   font-family: 'Barlow Condensed', sans-serif;
@@ -725,6 +726,23 @@ transition: opacity .2s;
 }
 #feedback.correcte { color: var(--green); }
 #feedback.incorrecte { color: var(--red); }
+.feedback-hint {
+  position: absolute;
+  top: 100%;
+  right: 16px;
+  font-size: 0.75em;
+  color: var(--amber);
+  font-family: 'Barlow', sans-serif;
+  font-weight: 400;
+  background: var(--dark2);
+  padding: 2px 8px 4px;
+  border-radius: 0 0 6px 6px;
+  border: 1px solid var(--border);
+  border-top: none;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 500;
+}
 #score { display: flex; gap: 8px; }
 .score {
   padding: 4px 12px;

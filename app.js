@@ -9,6 +9,7 @@ let extraLayer = null;
 let extraHitboxLayer = null;
 let hoveredFeature = null;
 let pendingTimers = [];
+let riuComarques = {};
 
 function scheduleTimer(fn, delay) {
   const id = setTimeout(fn, delay);
@@ -282,7 +283,7 @@ function restartGame() {
 // =====================
 function initMap() {
   if (map) return;
-  map = L.map("map").setView([41.7, 1.8], 7);
+  map = L.map("map", { inertia: false }).setView([41.7, 1.8], 7);
 }
 const EXTRA_MODES = ["RIU", "SERRALADA", "CARRETERA"];
 
@@ -352,7 +353,9 @@ function styleExtra(feature) {
 function onEachExtraFeature(feature, layer) {
   const isLine = gameMode === "RIU" || gameMode === "CARRETERA";
   const nom = feature.properties.nom;
-  layer.on("click", () => {
+  layer.on("mousedown", (e) => { L.DomEvent.stopPropagation(e); });
+  layer.on("click", (e) => {
+    L.DomEvent.stopPropagation(e);
     if (completedAnswers.has(nom)) return;
     if (nom === currentAnswer) {
       completedAnswers.add(nom);
@@ -374,7 +377,10 @@ function onEachExtraFeature(feature, layer) {
       } else {
         layer.setStyle({ fillColor: "#D62828", fillOpacity: 0.7, color: "#ff4444", weight: 2.5 });
       }
-      showFeedback(false);
+      const hint = (gameMode === "RIU" && riuComarques[currentAnswer])
+        ? "Passa per: " + riuComarques[currentAnswer].join(", ")
+        : null;
+      showFeedback(false, hint);
       scheduleTimer(() => {
         if (extraLayer) extraLayer.setStyle(styleExtra);
       }, 700);
@@ -554,6 +560,12 @@ function loadDataset(dataset) {
       }).addTo(map);
       if (isExtra && extraData) {
         pendingAnswers = extraData.features.map((f) => f.properties.nom);
+        if (gameMode === "RIU") {
+          riuComarques = {};
+          extraData.features.forEach((f) => {
+            if (f.properties.comarques) riuComarques[f.properties.nom] = f.properties.comarques;
+          });
+        }
         addExtraLayer(extraData);
       } else {
         pendingAnswers = geoData.features.map(config.name);
