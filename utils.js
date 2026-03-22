@@ -238,16 +238,59 @@ function updateVegueriaFilter() {
 function updateScore() {
   document.getElementById("score-correct").textContent = scoreCorrect;
   document.getElementById("score-wrong").textContent = scoreWrong;
+  updateProgress();
 }
+
+function updateProgress() {
+  const fill = document.getElementById("progress-fill");
+  const text = document.getElementById("progress-text");
+  if (!fill || !text) return;
+  if (totalQuestions === 0) {
+    fill.style.width = "0%";
+    text.textContent = "";
+    return;
+  }
+  const done = gameMode === "TEST" ? (scoreCorrect + scoreWrong) : completedAnswers.size;
+  const pct = Math.min(100, Math.round((done / totalQuestions) * 100));
+  fill.style.width = pct + "%";
+  text.textContent = done + " / " + totalQuestions;
+}
+
+function toggleTestSummary() {
+  const errorsDiv = document.getElementById("modal-test-errors");
+  const btn = document.querySelector(".modal-toggle-errors");
+  const isOpen = errorsDiv.style.display === "block";
+  if (isOpen) {
+    errorsDiv.style.display = "none";
+    btn.textContent = "▼ Veure " + testWrongAnswers.length + " error" + (testWrongAnswers.length > 1 ? "s" : "");
+  } else {
+    errorsDiv.innerHTML = testWrongAnswers.map((e) =>
+      '<div class="test-error-item">' + escapeHtml(e.question) +
+      '<br><span class="test-error-correct">✓ ' + escapeHtml(e.correct) + "</span></div>"
+    ).join("");
+    errorsDiv.style.display = "block";
+    btn.textContent = "▲ Amagar errors";
+  }
+}
+
+let feedbackClearTimer = null;
 
 function showFeedback(ok, hint) {
   const fb = document.getElementById("feedback");
   fb.className = ok ? "correcte" : "incorrecte";
-  if (ok || !hint) {
+  if (!hint) {
     fb.textContent = ok ? "✓ Correcte!" : "✗ Incorrecte!";
+  } else if (ok) {
+    fb.textContent = "✓ Correcte! · " + hint;
   } else {
     fb.innerHTML = "✗ Incorrecte! <span class='feedback-hint'>" + escapeHtml(hint) + "</span>";
   }
+  if (feedbackClearTimer) clearTimeout(feedbackClearTimer);
+  feedbackClearTimer = setTimeout(() => {
+    fb.textContent = "";
+    fb.className = "";
+    feedbackClearTimer = null;
+  }, 5000);
 }
 
 // =====================
@@ -304,6 +347,24 @@ function showGameOver() {
   } else {
     emoji.textContent = "💪";
     title.textContent = "Segueix practicant!";
+  }
+
+  const btnReview = document.getElementById("btn-review-errors");
+  if (gameMode !== "TEST" && wrongRegions.size > 0) {
+    btnReview.textContent = "🔁 Practica errors (" + wrongRegions.size + ")";
+    btnReview.classList.remove("hidden");
+  } else {
+    btnReview.classList.add("hidden");
+  }
+
+  const summary = document.getElementById("modal-test-summary");
+  if (gameMode === "TEST" && testWrongAnswers.length > 0) {
+    summary.classList.remove("hidden");
+    const btn = summary.querySelector(".modal-toggle-errors");
+    btn.textContent = "▼ Veure " + testWrongAnswers.length + " error" + (testWrongAnswers.length > 1 ? "s" : "");
+    document.getElementById("modal-test-errors").style.display = "none";
+  } else {
+    summary.classList.add("hidden");
   }
 
   saveScore(currentUser, scoreCorrect, total);

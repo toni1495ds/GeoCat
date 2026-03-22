@@ -186,55 +186,57 @@
             <option value="catalunya">Catalunya</option>
             <option value="usa">USA</option>
           </select>
-          <button
-            class="btn-mode"
-            id="mode-comarca"
-            onclick="setMode('COMARCA')"
-          >
-            Comarques
-          </button>
-          <button
-            class="btn-mode active"
-            id="mode-capital"
-            onclick="setMode('CAPITAL')"
-          >
-            Capitals
-          </button>
-          <button
-            class="btn-mode"
-            id="mode-municipi"
-            onclick="setMode('MUNICIPI')"
-          >
-            Municipis
-          </button>
-          <button
-            class="btn-mode"
-            id="mode-riu"
-            onclick="setMode('RIU')"
-          >
-            Rius
-          </button>
-          <button
-            class="btn-mode"
-            id="mode-serralada"
-            onclick="setMode('SERRALADA')"
-          >
-            Serralades
-          </button>
-          <button
-            class="btn-mode"
-            id="mode-carretera"
-            onclick="setMode('CARRETERA')"
-          >
-            Carreteres
-          </button>
-          <button
-            class="btn-mode"
-            id="mode-test"
-            onclick="setMode('TEST')"
-          >
-            📝 Test
-          </button>
+          <div class="mode-scroll">
+            <button
+              class="btn-mode"
+              id="mode-comarca"
+              onclick="setMode('COMARCA')"
+            >
+              Comarques
+            </button>
+            <button
+              class="btn-mode active"
+              id="mode-capital"
+              onclick="setMode('CAPITAL')"
+            >
+              Capitals
+            </button>
+            <button
+              class="btn-mode"
+              id="mode-municipi"
+              onclick="setMode('MUNICIPI')"
+            >
+              Municipis
+            </button>
+            <button
+              class="btn-mode"
+              id="mode-riu"
+              onclick="setMode('RIU')"
+            >
+              Rius
+            </button>
+            <button
+              class="btn-mode"
+              id="mode-serralada"
+              onclick="setMode('SERRALADA')"
+            >
+              Serralades
+            </button>
+            <button
+              class="btn-mode"
+              id="mode-carretera"
+              onclick="setMode('CARRETERA')"
+            >
+              Carreteres
+            </button>
+            <button
+              class="btn-mode"
+              id="mode-test"
+              onclick="setMode('TEST')"
+            >
+              📝 Test
+            </button>
+          </div>
           <select
             id="vegueria-select"
             class="topbar-select"
@@ -255,6 +257,10 @@
       </div>
       <div id="game-question-bar">
         <p id="question">Carregant…</p>
+        <div id="progress-wrap">
+          <div id="progress-bar"><div id="progress-fill"></div></div>
+          <div id="progress-text"></div>
+        </div>
         <div id="status-bar">
           <span id="feedback"></span>
           <div id="score">
@@ -310,9 +316,16 @@
           </div>
         </div>
         <div class="modal-accuracy" id="modal-accuracy"></div>
+        <div id="modal-test-summary" class="hidden">
+          <button class="modal-toggle-errors" onclick="toggleTestSummary()">▼ Veure errors</button>
+          <div id="modal-test-errors"></div>
+        </div>
         <div class="modal-actions">
           <button class="btn-fire btn-fire--full" onclick="restartGame()">
             ▶ Tornar a jugar
+          </button>
+          <button class="btn-modal-secondary hidden" id="btn-review-errors" onclick="reviewErrors()">
+            🔁 Practica errors
           </button>
           <button class="btn-modal-secondary" onclick="goHome()">
             Menú principal
@@ -325,8 +338,8 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="utils.js?v=4.4"></script>
-    <script src="app.js?v=4.4"></script>
+    <script src="utils.js?v=4.5"></script>
+    <script src="app.js?v=4.5"></script>
     <script>
       // ── FIRE EFFECTS ──
       (function initFire() {

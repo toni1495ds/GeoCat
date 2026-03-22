@@ -35,6 +35,9 @@ let activeVegueria = null;
 let scoreCorrect = 0;
 let scoreWrong = 0;
 let scoreSaved = false;
+let totalQuestions = 0;
+let testWrongAnswers = [];
+let wrongRegions = new Set();
 // =====================
 // DADES ESTÀTIQUES
 // =====================
@@ -279,6 +282,38 @@ function restartGame() {
   document.getElementById("modal-gameover").classList.remove("show");
   loadDataset(activeDataset);
 }
+function reviewErrors() {
+  document.getElementById("modal-gameover").classList.remove("show");
+  pendingAnswers = [...wrongRegions];
+  wrongRegions = new Set();
+  completedAnswers.clear();
+  if (EXTRA_MODES.includes(gameMode)) {
+    if (extraLayer) {
+      extraLayer.eachLayer((l) => {
+        const nom = l.feature.properties.nom;
+        if (!pendingAnswers.includes(nom)) completedAnswers.add(nom);
+      });
+    }
+  } else {
+    if (geojsonLayer) {
+      geojsonLayer.eachLayer((l) => {
+        const nom = l.feature.properties.nom_comar || l.feature.properties.name;
+        if (!pendingAnswers.includes(nom)) completedAnswers.add(nom);
+      });
+    }
+  }
+  scoreCorrect = 0;
+  scoreWrong = 0;
+  scoreSaved = false;
+  totalQuestions = pendingAnswers.length;
+  updateScore();
+  if (feedbackClearTimer) { clearTimeout(feedbackClearTimer); feedbackClearTimer = null; }
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "";
+  if (geojsonLayer) geojsonLayer.setStyle(styleFeature);
+  if (extraLayer) extraLayer.setStyle(styleExtra);
+  newQuestion();
+}
 // =====================
 // MAPA
 // =====================
@@ -372,6 +407,7 @@ function onEachExtraFeature(feature, layer) {
       }
     } else {
       scoreWrong++;
+      wrongRegions.add(currentAnswer);
       updateScore();
       if (isLine) {
         layer.setStyle({ color: "#D62828", weight: 7, opacity: 1 });
@@ -421,7 +457,7 @@ function onEachFeature(feature, layer) {
       scoreCorrect++;
       updateScore();
       geojsonLayer.setStyle(styleFeature);
-      showFeedback(true);
+      showFeedback(true, gameMode === "CAPITAL" ? currentAnswer : null);
       if (pendingAnswers.length === 0) {
         scheduleTimer(showGameOver, 700);
       } else {
@@ -429,6 +465,7 @@ function onEachFeature(feature, layer) {
       }
     } else {
       scoreWrong++;
+      wrongRegions.add(currentAnswer);
       updateScore();
       layer.setStyle({ fillColor: "#D62828", fillOpacity: 0.75 });
       showFeedback(false);
@@ -452,16 +489,15 @@ function onEachFeature(feature, layer) {
 // NOVA PREGUNTA
 // =====================
 function newQuestion() {
-  document.getElementById("feedback").textContent = "";
-  document.getElementById("feedback").className = "";
   if (pendingAnswers.length === 0) {
     if (scoreCorrect + scoreWrong === 0) return;
     showGameOver();
     return;
   }
   if (gameMode === "MUNICIPI") {
+    const pendingSet = new Set(pendingAnswers);
     const availableMunicipis = Object.keys(municipis).filter(
-      (m) => !completedAnswers.has(municipis[m]),
+      (m) => !completedAnswers.has(municipis[m]) && pendingSet.has(municipis[m]),
     );
     if (availableMunicipis.length === 0) {
       showGameOver();
@@ -550,8 +586,13 @@ function loadDataset(dataset) {
   scoreCorrect = 0;
   scoreWrong = 0;
   scoreSaved = false;
+  totalQuestions = 0;
+  testWrongAnswers = [];
+  wrongRegions = new Set();
   updateScore();
+  if (feedbackClearTimer) { clearTimeout(feedbackClearTimer); feedbackClearTimer = null; }
   document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "";
   document.getElementById("question").textContent = "Carregant…";
   if (geojsonLayer) {
     map.removeLayer(geojsonLayer);
@@ -607,6 +648,7 @@ function loadDataset(dataset) {
       } else {
         pendingAnswers = geoData.features.map(config.name);
       }
+      totalQuestions = pendingAnswers.length;
       map.fitBounds(geojsonLayer.getBounds());
       newQuestion();
     })
@@ -676,6 +718,10 @@ function handleTestAnswer(clickedIdx, chosen, correct, options) {
   if (!isCorrect) {
     document.getElementById('opt-' + clickedIdx).classList.add('test-wrong');
     scoreWrong++;
+    testWrongAnswers.push({
+      question: document.getElementById('question').textContent,
+      correct: correct,
+    });
   } else {
     scoreCorrect++;
   }
@@ -738,7 +784,11 @@ function setMode(mode) {
     scoreCorrect = 0;
     scoreWrong = 0;
     scoreSaved = false;
+    totalQuestions = 20;
+    testWrongAnswers = [];
+    wrongRegions = new Set();
     updateScore();
+    if (feedbackClearTimer) { clearTimeout(feedbackClearTimer); feedbackClearTimer = null; }
     document.getElementById("feedback").textContent = "";
     document.getElementById("feedback").className = "";
     const myTestGen = loadGeneration;

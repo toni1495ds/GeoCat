@@ -654,8 +654,22 @@ transition: opacity .2s;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
+.mode-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.mode-scroll::-webkit-scrollbar { display: none; }
 .btn-mode {
   padding: 6px 14px;
   background: var(--surface2);
@@ -742,6 +756,34 @@ transition: opacity .2s;
   white-space: nowrap;
   pointer-events: none;
   z-index: 500;
+}
+#progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+#progress-bar {
+  width: 72px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--green);
+  border-radius: 2px;
+  transition: width .35s ease;
+}
+#progress-text {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .5px;
+  white-space: nowrap;
+  min-width: 40px;
 }
 #score { display: flex; gap: 8px; }
 .score {
@@ -972,6 +1014,40 @@ transition: opacity .2s;
   margin-top: 4px;
 }
 .modal-accuracy { font-size: 14px; color: var(--muted); }
+#modal-test-summary { width: 100%; text-align: left; }
+.modal-toggle-errors {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s;
+}
+.modal-toggle-errors:hover { border-color: rgba(255,255,255,.2); color: var(--text); }
+#modal-test-errors {
+  display: none;
+  margin-top: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 4px 0;
+}
+.test-error-item {
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Barlow', sans-serif;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+.test-error-item:last-child { border-bottom: none; }
+.test-error-correct { color: var(--green); font-weight: 600; }
 .modal-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .btn-modal-secondary {
   width: 100%;
