@@ -957,9 +957,14 @@ transition: opacity .2s;
 }
 .feature-tooltip::before { display: none !important; }
 
-/* Pulsing glow on the current target path (SVG) */
-.leaflet-overlay-pane svg path.current-target {
-  filter: drop-shadow(0 0 6px rgba(41, 182, 246, 0.9));
+/* Glow on current answer line */
+.glow-riu {
+  filter: drop-shadow(0 0 5px rgba(41, 182, 246, 1))
+          drop-shadow(0 0 12px rgba(41, 182, 246, 0.6));
+}
+.glow-carretera {
+  filter: drop-shadow(0 0 5px rgba(255, 213, 79, 1))
+          drop-shadow(0 0 12px rgba(255, 213, 79, 0.6));
 }
 
 /* ════════════════════════════════

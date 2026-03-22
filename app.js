@@ -6,6 +6,8 @@ let selectedDataset = "catalunya";
 let map = null;
 let geojsonLayer = null;
 let extraLayer = null;
+let extraHitboxLayer = null;
+let hoveredFeature = null;
 let pendingTimers = [];
 
 function scheduleTimer(fn, delay) {
@@ -333,12 +335,12 @@ function styleExtra(feature) {
   if (gameMode === "RIU") {
     return isDone
       ? { color: "#2ecc71", weight: 5, opacity: 0.95 }
-      : { color: "#4fc3f7", weight: 3, opacity: 0.75 };
+      : { color: "#4fc3f7", weight: 5, opacity: 0.75 };
   }
   if (gameMode === "CARRETERA") {
     return isDone
       ? { color: "#2ecc71", weight: 5, opacity: 0.95 }
-      : { color: "#FFB020", weight: 3.5, opacity: 0.8 };
+      : { color: "#FFB020", weight: 5, opacity: 0.8 };
   }
   // SERRALADA
   const col = serraladaColors[nom] || "#8b7355";
@@ -379,11 +381,8 @@ function onEachExtraFeature(feature, layer) {
     }
   });
   layer.on("mouseover", function () {
-    if (isLine) {
-      this.setStyle({ weight: 6, opacity: 1 });
-    } else {
-      this.setStyle({ fillOpacity: 0.65, weight: 2.5 });
-    }
+    if (isLine) { this.setStyle({ weight: 8, opacity: 1 }); }
+    else { this.setStyle({ fillOpacity: 0.65, weight: 2.5 }); }
   });
   layer.on("mouseout", function () {
     if (extraLayer) extraLayer.setStyle(styleExtra);
@@ -470,21 +469,18 @@ function newQuestion() {
     currentAnswer = randomFrom(pendingAnswers);
     document.getElementById("question").textContent =
       "🌊 Clica el riu: " + currentAnswer;
-    if (extraLayer) extraLayer.setStyle(styleExtra);
     return;
   }
   if (gameMode === "SERRALADA") {
     currentAnswer = randomFrom(pendingAnswers);
     document.getElementById("question").textContent =
       "⛰️ Clica la serralada: " + currentAnswer;
-    if (extraLayer) extraLayer.setStyle(styleExtra);
     return;
   }
   if (gameMode === "CARRETERA") {
     currentAnswer = randomFrom(pendingAnswers);
     document.getElementById("question").textContent =
       "🛣️ Clica la carretera: " + currentAnswer;
-    if (extraLayer) extraLayer.setStyle(styleExtra);
     return;
   }
   const filtered = activeVegueria
@@ -523,6 +519,11 @@ function loadDataset(dataset) {
     map.removeLayer(extraLayer);
     extraLayer = null;
   }
+  if (extraHitboxLayer) {
+    map.removeLayer(extraHitboxLayer);
+    extraHitboxLayer = null;
+  }
+  hoveredFeature = null;
   const config =
     dataset === "usa"
       ? {
