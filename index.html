@@ -228,6 +228,13 @@
           >
             Carreteres
           </button>
+          <button
+            class="btn-mode"
+            id="mode-test"
+            onclick="setMode('TEST')"
+          >
+            📝 Test
+          </button>
           <select
             id="vegueria-select"
             class="topbar-select"
@@ -259,6 +266,13 @@
         </div>
       </div>
       <div id="map"></div>
+      <div id="test-panel" class="hidden">
+        <div id="test-progress"></div>
+        <button class="test-option" id="opt-0"></button>
+        <button class="test-option" id="opt-1"></button>
+        <button class="test-option" id="opt-2"></button>
+        <button class="test-option" id="opt-3"></button>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════

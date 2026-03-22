@@ -471,6 +471,38 @@ function newQuestion() {
       "📍 On és el municipi: " + municipi;
     return;
   }
+  if (gameMode === "TEST") {
+    if (pendingAnswers.length === 0) { showGameOver(); return; }
+    const qNum = 20 - pendingAnswers.length + 1;
+    document.getElementById("test-progress").textContent = "Pregunta " + qNum + " / 20";
+    const comarcaList = Object.keys(capitals);
+    const capitalList = Object.values(capitals);
+    const types = ["COMARCA_CAPITAL", "CAPITAL_COMARCA"];
+    if (municipisLoaded && Object.keys(municipis).length > 0) types.push("MUNICIPI_COMARCA");
+    const type = randomFrom(types);
+    let questionText, correct, pool;
+    if (type === "COMARCA_CAPITAL") {
+      const comarca = randomFrom(comarcaList);
+      correct = capitals[comarca];
+      questionText = "🏛️ Quina és la capital de " + comarca + "?";
+      pool = capitalList;
+    } else if (type === "CAPITAL_COMARCA") {
+      const comarca = randomFrom(comarcaList);
+      correct = comarca;
+      questionText = "🏛️ La capital " + capitals[comarca] + " pertany a quina comarca?";
+      pool = comarcaList;
+    } else {
+      const mList = Object.keys(municipis);
+      const m = randomFrom(mList);
+      correct = municipis[m];
+      questionText = "📍 El municipi de " + m + " pertany a quina comarca?";
+      pool = comarcaList;
+    }
+    currentAnswer = correct;
+    document.getElementById("question").textContent = questionText;
+    showTestOptions(generateTestOptions(correct, pool), correct);
+    return;
+  }
   if (gameMode === "RIU") {
     currentAnswer = randomFrom(pendingAnswers);
     document.getElementById("question").textContent =
@@ -610,6 +642,49 @@ function loadMunicipis() {
   return municipisLoadPromise;
 }
 // =====================
+// MODE TEST
+// =====================
+function generateTestOptions(correct, pool) {
+  const wrong = pool.filter(v => v !== correct).sort(() => Math.random() - 0.5).slice(0, 3);
+  return [correct, ...wrong].sort(() => Math.random() - 0.5);
+}
+
+function showTestOptions(options, correct) {
+  const labels = ['a', 'b', 'c', 'd'];
+  options.forEach((opt, i) => {
+    const btn = document.getElementById('opt-' + i);
+    btn.textContent = labels[i] + ') ' + opt;
+    btn.className = 'test-option';
+    btn.disabled = false;
+    btn.onclick = () => handleTestAnswer(i, opt, correct, options);
+  });
+}
+
+function handleTestAnswer(clickedIdx, chosen, correct, options) {
+  for (let i = 0; i < 4; i++) {
+    const btn = document.getElementById('opt-' + i);
+    btn.disabled = true;
+    btn.onclick = null;
+    if (options[i] === correct) btn.classList.add('test-correct');
+  }
+  const isCorrect = chosen === correct;
+  if (!isCorrect) {
+    document.getElementById('opt-' + clickedIdx).classList.add('test-wrong');
+    scoreWrong++;
+  } else {
+    scoreCorrect++;
+  }
+  updateScore();
+  showFeedback(isCorrect);
+  pendingAnswers.pop();
+  if (pendingAnswers.length === 0) {
+    scheduleTimer(showGameOver, 1200);
+  } else {
+    scheduleTimer(newQuestion, 1400);
+  }
+}
+
+// =====================
 // CONTROLS JOC
 // =====================
 function setMode(mode) {
@@ -627,6 +702,7 @@ function setMode(mode) {
         RIU: "mode-riu",
         SERRALADA: "mode-serralada",
         CARRETERA: "mode-carretera",
+        TEST: "mode-test",
       }[mode],
     )
     .classList.add("active");
@@ -635,9 +711,44 @@ function setMode(mode) {
   document.getElementById("vegueria-select").value = "";
   document.getElementById("provincia-select").value = "";
   updateFiltersUI();
+
+  const mapEl = document.getElementById("map");
+  const testPanel = document.getElementById("test-panel");
+  if (mode === "TEST") {
+    mapEl.style.display = "none";
+    testPanel.classList.remove("hidden");
+  } else {
+    testPanel.classList.add("hidden");
+    mapEl.style.display = "";
+    if (map && prevMode === "TEST") map.invalidateSize();
+  }
+
   const isExtra = EXTRA_MODES.includes(mode);
   const wasExtra = EXTRA_MODES.includes(prevMode);
-  if (isExtra || wasExtra) {
+
+  if (mode === "TEST") {
+    pendingAnswers = Array(20).fill(null);
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    scoreSaved = false;
+    updateScore();
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("feedback").className = "";
+    const startTest = () => {
+      loadMunicipis().then(() => {
+        updateMunicipisByProvincia();
+        newQuestion();
+      });
+    };
+    if (Object.keys(capitals).length > 0) {
+      startTest();
+    } else {
+      document.getElementById("question").textContent = "Carregant…";
+      fetch("data/catalunya/capitals.json")
+        .then(r => r.json())
+        .then(data => { capitals = data; startTest(); });
+    }
+  } else if (isExtra || wasExtra || prevMode === "TEST") {
     loadDataset(activeDataset);
   } else if (mode === "MUNICIPI") {
     document.getElementById("question").textContent = "Carregant…";

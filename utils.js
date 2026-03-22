@@ -263,12 +263,13 @@ function updateModeLabels() {
   document.getElementById("mode-riu").style.display = isUSA ? "none" : "";
   document.getElementById("mode-serralada").style.display = isUSA ? "none" : "";
   document.getElementById("mode-carretera").style.display = isUSA ? "none" : "";
+  document.getElementById("mode-test").style.display = isUSA ? "none" : "";
 }
 
 function updateFiltersUI() {
   const vegueriaEl = document.getElementById("vegueria-select");
   const provinciaEl = document.getElementById("provincia-select");
-  if (activeDataset === "usa" || ["RIU", "SERRALADA", "CARRETERA"].includes(gameMode)) {
+  if (activeDataset === "usa" || ["RIU", "SERRALADA", "CARRETERA", "TEST"].includes(gameMode)) {
     vegueriaEl.style.display = "none";
     provinciaEl.style.display = "none";
     return;
