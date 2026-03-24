@@ -656,7 +656,6 @@ transition: opacity .2s;
   gap: 8px;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
 }
 .mode-scroll {
   display: flex;
@@ -668,6 +667,7 @@ transition: opacity .2s;
   flex-wrap: nowrap;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
 .mode-scroll::-webkit-scrollbar { display: none; }
 .btn-mode {
@@ -682,6 +682,9 @@ transition: opacity .2s;
   border-radius: 7px;
   cursor: pointer;
   transition: all .2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+  touch-action: manipulation;
 }
 .btn-mode.active {
   background: var(--red);
@@ -1119,9 +1122,19 @@ transition: opacity .2s;
 @media (max-width: 600px) {
   .home-cards { grid-template-columns: 1fr; }
   .hero-title { letter-spacing: 0; }
-  #question { font-size: 14px; }
-  #game-topbar { flex-wrap: wrap; }
-  .topbar-controls { width: 100%; }
+  #question { font-size: 16px; }
+  #game-question-bar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  #progress-wrap { width: 100%; order: 3; }
+  #status-bar { margin-left: auto; }
+  #game-topbar { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+  #btn-back { width: 44px; height: 44px; font-size: 20px; }
+  .game-logo { font-size: 26px; }
+  .topbar-left { width: 100%; justify-content: space-between; }
+  .topbar-controls { width: 100%; flex-wrap: wrap; }
+  .mode-scroll { flex-basis: 100%; }
+  #vegueria-select, #provincia-select { width: 100%; }
+  .btn-mode { padding: 14px 22px; font-size: 16px; border-radius: 10px; }
+  .topbar-select { padding: 10px 12px; font-size: 15px; }
   .home-stats { flex-wrap: wrap; gap: 16px; }
   .hstat-div { display: none; }
 }

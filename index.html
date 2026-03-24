@@ -176,8 +176,6 @@
           <div class="game-logo" onclick="goHome()" title="Tornar a l'inici">
             GEO<span>CAT</span>
           </div>
-        </div>
-        <div class="topbar-controls">
           <select
             id="dataset-select"
             class="topbar-select"
@@ -186,6 +184,8 @@
             <option value="catalunya">Catalunya</option>
             <option value="usa">USA</option>
           </select>
+        </div>
+        <div class="topbar-controls">
           <div class="mode-scroll">
             <button
               class="btn-mode"
@@ -241,7 +241,7 @@
             id="vegueria-select"
             class="topbar-select"
             onchange="changeVegueria()"
-            style="visibility: hidden"
+            style="display: none"
           >
             <option value="">Totes les vegueries</option>
           </select>
@@ -249,7 +249,7 @@
             id="provincia-select"
             class="topbar-select"
             onchange="changeProvincia()"
-            style="visibility: hidden"
+            style="display: none"
           >
             <option value="">Totes les províncies</option>
           </select>

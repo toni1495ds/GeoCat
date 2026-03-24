@@ -313,12 +313,12 @@ function updateFiltersUI() {
   const vegueriaEl = document.getElementById("vegueria-select");
   const provinciaEl = document.getElementById("provincia-select");
   if (activeDataset === "usa" || ["RIU", "SERRALADA", "CARRETERA", "TEST"].includes(gameMode)) {
-    vegueriaEl.style.visibility = "hidden";
-    provinciaEl.style.visibility = "hidden";
+    vegueriaEl.style.display = "none";
+    provinciaEl.style.display = "none";
     return;
   }
-  vegueriaEl.style.visibility = gameMode === "MUNICIPI" ? "hidden" : "visible";
-  provinciaEl.style.visibility = gameMode === "MUNICIPI" ? "visible" : "hidden";
+  vegueriaEl.style.display = gameMode === "MUNICIPI" ? "none" : "";
+  provinciaEl.style.display = gameMode === "MUNICIPI" ? "" : "none";
 }
 
 // =====================
