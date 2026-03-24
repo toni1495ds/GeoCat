@@ -457,6 +457,7 @@ function onEachFeature(feature, layer) {
       scoreCorrect++;
       updateScore();
       geojsonLayer.setStyle(styleFeature);
+      updateVegueriaFilter();
       showFeedback(true, gameMode === "CAPITAL" ? currentAnswer : null);
       if (pendingAnswers.length === 0) {
         scheduleTimer(showGameOver, 700);
@@ -470,7 +471,7 @@ function onEachFeature(feature, layer) {
       layer.setStyle({ fillColor: "#D62828", fillOpacity: 0.75 });
       showFeedback(false);
       scheduleTimer(() => {
-        if (geojsonLayer) geojsonLayer.setStyle(styleFeature);
+        if (geojsonLayer) { geojsonLayer.setStyle(styleFeature); updateVegueriaFilter(); }
       }, 700);
     }
   });
@@ -482,7 +483,7 @@ function onEachFeature(feature, layer) {
   });
   layer.on("mouseout", function () {
     if (EXTRA_MODES.includes(gameMode)) return;
-    if (geojsonLayer) geojsonLayer.setStyle(styleFeature);
+    if (geojsonLayer) { geojsonLayer.setStyle(styleFeature); updateVegueriaFilter(); }
   });
 }
 // =====================
@@ -562,7 +563,11 @@ function newQuestion() {
   const filtered = activeVegueria
     ? pendingAnswers.filter((n) => getVegueria(n) === activeVegueria)
     : pendingAnswers;
-  currentAnswer = randomFrom(filtered.length > 0 ? filtered : pendingAnswers);
+  if (filtered.length === 0) {
+    showGameOver();
+    return;
+  }
+  currentAnswer = randomFrom(filtered);
   if (gameMode === "CAPITAL") {
     document.getElementById("question").textContent =
       activeDataset === "usa"
@@ -838,6 +843,22 @@ function changeDataset() {
 function changeVegueria() {
   activeVegueria = document.getElementById("vegueria-select").value || null;
   updateVegueriaFilter();
+  if (activeVegueria) {
+    pendingAnswers = (vegueries[activeVegueria] || []).slice();
+    completedAnswers = new Set(
+      [...completedAnswers].filter((n) => getVegueria(n) !== activeVegueria)
+    );
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    scoreSaved = false;
+    totalQuestions = pendingAnswers.length;
+    updateScore();
+    geojsonLayer.setStyle(styleFeature);
+    updateVegueriaFilter();
+  } else {
+    loadDataset(activeDataset);
+    return;
+  }
   newQuestion();
 }
 function changeProvincia() {
